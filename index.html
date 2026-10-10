@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>StartLux · 原生 PR 与框架零修改推理方案对比</title>
+<style>
+:root{--ink:#152739;--muted:#536576;--line:#dce4eb;--teal:#087f79;--blue:#255fbb;--bg:#f3f6f8;--white:#fff;--amber:#8b5a13}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:74px}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}main{max-width:1140px;margin:auto;padding:30px 30px 60px}header{padding:38px 40px;border-radius:20px;background:#132d40;color:white}header h1{font-size:clamp(28px,4vw,42px);letter-spacing:-1px;line-height:1.25;margin:15px 0}header p{color:#d0e1e8;max-width:830px;margin-bottom:10px}.eyebrow{font-size:13px;letter-spacing:2px;color:#93d8d2}.badges{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}.badge{font-size:13px;padding:4px 12px;border:1px solid #426274;border-radius:30px;color:#e1f0f1}nav{position:sticky;top:0;background:#f3f6f8f5;z-index:5;padding:14px 3px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line)}nav a{text-decoration:none;color:var(--muted);font-size:14px;padding:3px 10px;border-radius:6px}nav a:hover{background:#e4eeed;color:var(--teal)}section{margin-top:26px;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:28px 32px;min-width:0}h2{font-size:25px;margin:0 0 12px;line-height:1.4}h3{font-size:18px;margin:20px 0 9px}p{margin:10px 0}a{color:var(--blue);overflow-wrap:anywhere}.sub{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid>*{min-width:0}.card{padding:20px;border-radius:12px;background:#f5f8fa;border:1px solid var(--line)}.good{color:var(--teal);font-weight:700}.warn{color:var(--amber);font-weight:700}.callout{border-left:4px solid var(--teal);padding:12px 18px;background:#edf7f4;margin:16px 0}.note{background:#fff8e9;border-left:4px solid #d79e46;padding:12px 18px;margin:16px 0}.table{overflow:auto;max-width:100%;margin:16px 0}table{border-collapse:collapse;width:100%;font-size:14px;text-align:left}td,th{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#edf3f5;font-weight:600}td code{overflow-wrap:anywhere}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9em}pre{white-space:pre;overflow:auto;border-radius:10px;padding:20px;background:#132b3b;color:#e4eef5;font-size:13px;line-height:1.65;max-width:100%;tab-size:4}pre code{font-size:inherit}figure{margin:18px 0;max-width:100%;overflow-x:auto}figcaption{font-size:13px;color:var(--muted);margin-top:10px}.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:20px 0}.step{position:relative;border:1px solid #bfd4d7;border-radius:12px;padding:17px 14px;background:#f0f8f7;font-size:14px}.step:not(:last-child):after{content:'→';position:absolute;right:-18px;top:40%;color:var(--teal);font-size:20px}.step b{display:block;font-size:16px;margin:5px 0}.step span{color:var(--muted)}.num{color:var(--teal);font-size:12px;font-weight:700}.math{font-family:ui-monospace,monospace;font-size:17px;border:1px solid #cbdde6;padding:18px;border-radius:10px;background:#f1f6fb;overflow:auto}.lab{padding:22px;border-radius:12px;background:#eff5fa;border:1px solid #cbdce7}.controls{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.controls label{display:flex;gap:8px;align-items:center;flex-wrap:wrap}select,button{font:inherit;font-size:14px;padding:8px 12px;border:1px solid #a6bdc7;border-radius:6px;background:white;color:var(--ink)}button{cursor:pointer}input[type=range]{width:200px;accent-color:var(--teal)}.barrow{display:grid;grid-template-columns:120px 1fr 85px;gap:12px;align-items:center;margin:13px 0;font-size:14px}.track{height:22px;border-radius:4px;background:#d7e4eb;overflow:hidden}.fill{height:100%;background:#178d86;min-width:1px}.value{text-align:right;font-variant-numeric:tabular-nums}.mini{font-size:13px;color:var(--muted)}.scope{display:inline-block;padding:3px 8px;background:#dff3eb;border-radius:4px;font-size:12px;font-weight:700;color:#126251}.planned{background:#fff1d2;color:#815111}details{margin:14px 0;border:1px solid var(--line);border-radius:8px;padding:12px 16px}summary{cursor:pointer;font-weight:600}svg{max-width:100%;height:auto;display:block;margin:auto}footer{font-size:13px;color:var(--muted);padding:22px 4px}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ffba42;outline-offset:3px}
+@media(max-width:700px){figure svg{min-width:760px;}main{padding:14px 12px 30px}header{padding:26px 22px}section{padding:22px 18px}.grid,.flow{grid-template-columns:1fr}.step:not(:last-child):after{content:'↓';right:50%;top:auto;bottom:-25px}.flow{gap:28px}.barrow{grid-template-columns:82px 1fr 70px;gap:8px}nav{position:static}h2{font-size:22px}.math{font-size:14px}td,th{padding:10px}.controls{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{body{background:white;font-size:11pt}main{max-width:none;padding:0}nav,.controls{display:none}header{background:white;color:#132d40;border:1px solid #a9bdc8;padding:22px}header p,.eyebrow,.badge{color:#304c60}section{break-inside:auto;padding:20px;border-radius:0}h2,h3{break-after:avoid}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f8;color:#172b3a}table{font-size:10pt}a{color:#152739}.grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:repeat(4,1fr)}.lab{break-inside:avoid}}
+</style></head><body><main>
+<header><div class="eyebrow">STARTLUX · NPU INFERENCE · 2026.10.10</div><h1>StartLux 推理方案对比<br>原生 PR 与框架源码零修改</h1><p>StartLux-35B-A3B 已用原版 vLLM / vLLM-Ascend 跑通文字决策：模型计算候选分数，服务层恢复业务选项、校准概率并组织接口返回。</p><div class="badges"><span class="badge">两仓源码修改：0</span><span class="badge">真实权重 · 双卡 eager</span><span class="badge">功能样例：5 / 5</span><span class="badge">全量精度：本方案待验收</span></div></header>
+<nav aria-label="章节导航"><a href="#scope">结论与范围</a><a href="#change-stages">改动框架图</a><a href="#flow">工作原理</a><a href="#probability">概率演示</a><a href="#service">服务接入</a><a href="#full-code">完整代码</a><a href="#deploy">部署复现</a><a href="#evidence">实测结果</a><a href="#compare">已提交 PR 方案对比</a><a href="#next">验收与建议</a></nav>
+<section id="scope"><h2>先看结论：哪些已完成</h2><div class="table"><table><thead><tr><th>层次</th><th>当前结论</th><th>具体含义</th></tr></thead><tbody><tr><td>模型推理</td><td class="good">已实测</td><td>原始权重、原版模型类，完成 choice / noul / score 三类文字决策。</td></tr><tr><td>框架源码</td><td class="good">保持不变</td><td>vLLM 与 Ascend 共 11,574 个源码文件逐项校验，与固定上游版本一致。</td></tr><tr><td>服务层封装</td><td>HTTP 代码已完成；实机端到端待验证</td><td>官方提示词 → 指定 token 分数 → 候选概率；新增服务已通过本地与目标容器的 CPU 接口测试；尚未完成真实 NPU HTTP 验证。</td></tr><tr><td>生产验收</td><td class="warn">尚未完成</td><td>本方案的七项全量精度、图模式、多模态、稳态性能都需独立测试。</td></tr></tbody></table></div><div class="callout"><strong>“零修改”的准确含义：</strong>不修改 vLLM / vLLM-Ascend 源码、不添加自定义模型注册、不修改原始权重配置；允许在应用侧编写调用和概率处理代码，使用正常运行所需的配套依赖。</div></section>
+<section id="change-stages"><h2>到底改在哪个阶段？看这张框架图</h2><p><strong>本次把新增逻辑放在模型计算之前和之后，模型计算中间复用原版能力。</strong>“零修改”只指 vLLM / vLLM-Ascend 两仓，并不表示没有应用代码。</p><p><span class="scope">绿色：本次新增应用代码</span> <span class="badge" style="color:#255fbb;border-color:#8aafd9">蓝色：原版框架，未改</span> <span class="scope planned">橙色：之前在 vLLM 内新增的能力</span></p><figure><svg viewBox="0 0 1000 350" role="img" aria-labelledby="stageTitle stageDesc"><title id="stageTitle">两种方案在请求生命周期中的改动位置</title><desc id="stageDesc">新方案在应用层增加请求校验、提示词编排、引擎调用、候选概率处理和接口返回，框架内模型前向与词表头保持不变。旧方案在vLLM模型内部增加分类模型注册、最后位置池化与FP32候选投影，应用层仍需编排和返回。</desc><defs><marker id="stageArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#60788a"/></marker></defs><text x="4" y="28" font-size="18" font-weight="600" fill="#152739">本次：新增独立应用服务，两个框架仓库不改</text><rect x="4" y="47" width="185" height="103" rx="10" fill="#e7f5ef" stroke="#56a990"/><text x="96.5" y="75" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">HTTP 接入</text><text x="96.5" y="102" text-anchor="middle" font-size="12.5" fill="#40596c">校验请求 · 串行调度</text><text x="96.5" y="123" text-anchor="middle" font-size="12.5" fill="#40596c">make_handler / validate_body</text><path d="M190 99H203" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="205" y="47" width="185" height="103" rx="10" fill="#e7f5ef" stroke="#56a990"/><text x="297.5" y="75" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">准备模型调用</text><text x="297.5" y="102" text-anchor="middle" font-size="12.5" fill="#40596c">官方提示词 · 候选编号</text><text x="297.5" y="123" text-anchor="middle" font-size="12.5" fill="#40596c">DecisionEngine.decide</text><path d="M391 99H404" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="406" y="47" width="185" height="103" rx="10" fill="#eaf1fb" stroke="#8aafd9"/><text x="498.5" y="75" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">原版引擎计算</text><text x="498.5" y="102" text-anchor="middle" font-size="12.5" fill="#40596c">Qwen 骨干 → 词表头</text><text x="498.5" y="123" text-anchor="middle" font-size="12.5" fill="#40596c">已有 logprobs 返回能力</text><path d="M592 99H605" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="607" y="47" width="185" height="103" rx="10" fill="#e7f5ef" stroke="#56a990"/><text x="699.5" y="75" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">候选概率处理</text><text x="699.5" y="102" text-anchor="middle" font-size="12.5" fill="#40596c">读取分数 → 温度 softmax</text><text x="699.5" y="123" text-anchor="middle" font-size="12.5" fill="#40596c">DecisionEngine.decide</text><path d="M793 99H806" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="808" y="47" width="185" height="103" rx="10" fill="#e7f5ef" stroke="#56a990"/><text x="900.5" y="75" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">业务结果返回</text><text x="900.5" y="102" text-anchor="middle" font-size="12.5" fill="#40596c">官方答案格式 · JSON</text><text x="900.5" y="123" text-anchor="middle" font-size="12.5" fill="#40596c">_answer / send_json</text><text x="4" y="198" font-size="18" font-weight="600" fill="#152739">之前：服务层仍然存在，模型内部增加原生分类读出</text><rect x="4" y="217" width="185" height="103" rx="10" fill="#f0f4f6" stroke="#c4d0d7"/><text x="96.5" y="245" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">HTTP 接入</text><text x="96.5" y="272" text-anchor="middle" font-size="12.5" fill="#40596c">服务请求与调度</text><text x="96.5" y="293" text-anchor="middle" font-size="12.5" fill="#40596c">应用层</text><path d="M190 269H203" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="205" y="217" width="185" height="103" rx="10" fill="#f0f4f6" stroke="#c4d0d7"/><text x="297.5" y="245" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">准备模型调用</text><text x="297.5" y="272" text-anchor="middle" font-size="12.5" fill="#40596c">官方提示词与候选映射</text><text x="297.5" y="293" text-anchor="middle" font-size="12.5" fill="#40596c">应用层</text><path d="M391 269H404" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="406" y="217" width="185" height="103" rx="10" fill="#fff2df" stroke="#d7a25a"/><text x="498.5" y="245" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">vLLM 分类接入</text><text x="498.5" y="272" text-anchor="middle" font-size="12.5" fill="#40596c">新增模型注册 + pooler</text><text x="498.5" y="293" text-anchor="middle" font-size="12.5" fill="#40596c">最后位置 → FP32 候选头</text><path d="M592 269H605" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="607" y="217" width="185" height="103" rx="10" fill="#f0f4f6" stroke="#c4d0d7"/><text x="699.5" y="245" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">候选概率处理</text><text x="699.5" y="272" text-anchor="middle" font-size="12.5" fill="#40596c">限制候选 → 温度 softmax</text><text x="699.5" y="293" text-anchor="middle" font-size="12.5" fill="#40596c">调用侧</text><path d="M793 269H806" stroke="#60788a" stroke-width="1.6" marker-end="url(#stageArrow)"/><rect x="808" y="217" width="185" height="103" rx="10" fill="#f0f4f6" stroke="#c4d0d7"/><text x="900.5" y="245" text-anchor="middle" font-size="16" font-weight="600" fill="#152739">业务结果返回</text><text x="900.5" y="272" text-anchor="middle" font-size="12.5" fill="#40596c">结构化答案与业务接口</text><text x="900.5" y="293" text-anchor="middle" font-size="12.5" fill="#40596c">应用层</text></svg><figcaption>图：两条方案按相同请求阶段对齐。右侧的校准和业务返回，两种方案都需要；核心区别是分数通过已有 logprobs 接口取出，还是通过新增分类 pooler 直接读出。</figcaption></figure>
+<div class="table"><table><thead><tr><th>阶段</th><th>本次新增 / 复用</th><th>代码定位</th><th>框架源码是否改动</th></tr></thead><tbody>
+<tr><td>启动阶段</td><td>设置环境、检查空卡、创建一次引擎</td><td>run_service.sh；DecisionEngine.__init__</td><td>否；配置和调用已有能力</td></tr>
+<tr><td>模型计算前</td><td>校验请求，复用官方模板编码，指定要返回哪些字母的分数</td><td>validate_body；J.render_ids；SamplingParams.logprob_token_ids</td><td>否；新增的是应用侧调用</td></tr>
+<tr><td>模型计算中</td><td>原版 Qwen 骨干、标准词表投影、采样和 logprobs 返回</td><td>llm.generate → vLLM → vLLM-Ascend</td><td><strong>两仓均不改</strong></td></tr>
+<tr><td>模型计算后</td><td>检查候选分数完整性，按题型校准并在合法候选间归一化</td><td>DecisionEngine.decide：sample.logprobs → torch.softmax</td><td>否；新增应用侧后处理</td></tr>
+<tr><td>业务返回阶段</td><td>复用官方答案格式；返回 HTTP JSON、用量和请求编号</td><td>StartLuxDecision._answer；Handler.send_json</td><td>否；新增接口包装</td></tr>
+</tbody></table></div><div class="callout"><strong>之前方案的额外改动点在“模型计算中”：</strong>给 vLLM 注册 StartLux 分类模型，增加最后有效位置池化及 FP32 字母候选投影。本次不增加这一层，直接调用框架已有的 logprobs 能力。Ascend 仍执行已有 NPU 算子。</div>
+<p>当前新增运行代码为 <strong>serve.py 166 行 + run_service.sh 17 行 = 183 行</strong>。这是接入方式的差异，不意味着两种路径的概率逐位一致或已经测得速度优劣；零修改方案的 HTTP 实机与全量精度仍待验收。</p></section>
+<section id="flow"><h2>一个例子，走完整条链路</h2><p>客户说：“同一杯咖啡被扣了两次钱。”业务系统需要一个部门标签和每个候选部门的概率。</p><figure><div class="flow"><div class="step"><div class="num">01 · 服务层</div><b>编排官方提示词</b><span>A：账单与退款<br>B：物流<br>C：技术支持</span></div><div class="step"><div class="num">02 · 原版引擎</div><b>计算下一位置分数</b><span>Qwen3.5 MoE 骨干<br>标准词表输出头<br>返回候选 logprobs</span></div><div class="step"><div class="num">03 · 服务层</div><b>候选限制与校准</b><span>保留 A、B、C<br>应用固定温度<br>概率总和归一到 1</span></div><div class="step"><div class="num">04 · 业务系统</div><b>读取结构化结果</b><span>账单与退款：99.784%<br>其他选项各有概率<br>按业务规则执行</span></div></div><figcaption>图：模型负责分数计算，应用服务负责选项映射和接口返回；实际动作由业务系统执行。</figcaption></figure><div class="grid"><div class="card"><h3>为什么标准模型类能处理？</h3><p>原始配置就是 <code>Qwen3_5MoeForConditionalGeneration</code>，权重保留 <code>lm_head.weight</code>。这条骨干和词表投影路径在已选上游版本中存在。</p></div><div class="card"><h3>是不是普通 Qwen 加提示词？</h3><p>不是替换成普通 Qwen 权重。本方案仍使用训练好的 <strong>StartLux 决策权重</strong>和官方提示词；只是复用标准计算接口读取它学到的决策分数。</p></div></div><p class="sub">多个问题分别构造成提示词，再按批次提交；并非把不同问题的概率混在一起。当前实测接口设置 <code>max_tokens=1</code>，会采样一个 token，但决策使用该位置的候选分数，不依赖采样出的字母或长文本解析。</p></section>
+<section id="probability"><h2>logprobs 与校准，到底做了什么</h2><div class="table"><table><thead><tr><th>概念</th><th>直白解释</th><th>本方案怎么用</th></tr></thead><tbody><tr><td>Token（词元）</td><td>模型处理的编号单位；这里 A–Z 均为单个词元。</td><td>核验 tokenizer 与 <code>letter_token_ids</code> 一致。</td></tr><tr><td>Logit（原始分数）</td><td>词表输出头给每个词元的未归一化分数。</td><td>由模型计算，不由服务层编造。</td></tr><tr><td>Logprob（对数概率）</td><td>词表概率取自然对数；越大代表模型越偏好。</td><td>用 <code>logprob_token_ids</code> 指定所有候选字母。</td></tr><tr><td>候选归一化</td><td>让本题合法选项的概率加起来等于 100%。</td><td>排除词表中无关词元，不能把缺失候选当作概率为零。</td></tr><tr><td>校准温度</td><td>调整概率集中程度的固定正数，不改变同一题的最高分选项。</td><td>直接读取该权重发布的参数，不在测试集重新拟合。</td></tr></tbody></table></div><div class="math">pᵢ = exp(ℓᵢ / T) / Σⱼ exp(ℓⱼ / T)　（j 仅遍历本题合法选项）</div><p>ℓᵢ 是候选对数概率，T 是对应题型的校准温度。因为完整词表 logprobs 与 logits 只差一个公共常数，这个常数会在候选归一化时抵消。<strong>同一组输入分数下两种公式等价；不同数值计算路径不保证逐位一致。</strong></p><div class="lab"><h3>交互演示：用本轮实际分数重新计算</h3><p class="mini">初始温度与下方实测表相同。拖动滑块仅在浏览器重算概率，不发起新推理；这些自选温度不是经过验收的新校准参数。</p><div class="controls"><label>功能样例 <select id="case" aria-label="选择功能样例"><option value="0">重复扣款 → 部门选择</option><option value="1">包裹延迟 → 部门选择</option><option value="2">数字 8 → 是否为偶数</option><option value="3">数字 7 → 是否为偶数</option><option value="4">应用无法启动 → 严重程度</option></select></label><label>校准温度 <input id="temp" type="range" min="0.5" max="3" step="0.0001" value="1.1905"><output id="tempValue" for="temp">1.1905</output></label><button id="reset" type="button">恢复官方温度</button></div><div id="bars" aria-live="polite"><div class="barrow"><span>A · 账单与退款</span><div class="track"><div class="fill" style="width:99.78398084640503%"></div></div><span class="value">99.7840%</span></div><div class="barrow"><span>B · 物流</span><div class="track"><div class="fill" style="width:0.04213665088173002%"></div></div><span class="value">0.0421%</span></div><div class="barrow"><span>C · 技术支持</span><div class="track"><div class="fill" style="width:0.17388432752341032%"></div></div><span class="value">0.1739%</span></div></div><p id="labStatus" class="mini">初始值：官方 choice 温度 1.1905。</p></div><div class="table"><table><thead><tr><th>题型</th><th>本权重官方温度</th><th>返回含义</th></tr></thead><tbody><tr><td>choice：选项选择</td><td>1.1905</td><td>各选项概率与最高概率选项</td></tr><tr><td>noul：是非判断</td><td>1.376</td><td>是 / 否概率</td></tr><tr><td>score：分级评分</td><td>1.213</td><td>各等级概率；额外评分字段按官方协议计算</td></tr></tbody></table></div><div class="note"><strong>两种“温度”别混用：</strong>推理请求的 <code>temperature=0</code> 控制采样；上面的 T 控制候选概率后处理。本方案读取原始 logprobs，然后单独应用校准温度。</div></section>
+<section id="service"><h2>代码放在哪里：独立应用服务</h2><span class="scope planned">HTTP 层代码已完成；概率读取已离线实测，真实 NPU HTTP 待验收</span><figure><svg viewBox="0 0 940 190" role="img" aria-labelledby="diagramTitle diagramDesc"><title id="diagramTitle">应用服务与原版框架的职责边界</title><desc id="diagramDesc">客户端请求先进入应用服务，应用服务通过 Python 接口调用原版 vLLM 与 vLLM Ascend，取得分数后在应用层校准并返回客户端。</desc><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#087f79"/></marker></defs><rect x="6" y="53" width="150" height="83" rx="12" fill="#eef3f8" stroke="#c4d3dd"/><text x="81" y="87" text-anchor="middle" font-size="18" fill="#152739">业务客户端</text><text x="81" y="113" text-anchor="middle" font-size="14" fill="#536576">问题 + 选项</text><rect x="216" y="15" width="340" height="160" rx="12" fill="#ecf7f3" stroke="#90c8bc"/><text x="386" y="48" text-anchor="middle" font-size="19" fill="#087f79">应用服务：新增逻辑放这里</text><text x="386" y="79" text-anchor="middle" font-size="15" fill="#152739">协议校验 · 官方提示词 · 批次组织</text><text x="386" y="111" text-anchor="middle" font-size="15" fill="#152739">候选映射 · 温度校准 · 返回格式</text><text x="386" y="145" text-anchor="middle" font-size="14" fill="#536576">长期持有引擎实例，避免逐请求加载</text><rect x="629" y="32" width="305" height="126" rx="12" fill="#edf3fc" stroke="#adc5e3"/><text x="781" y="66" text-anchor="middle" font-size="18" fill="#255fbb">原版 vLLM / vLLM-Ascend</text><text x="781" y="99" text-anchor="middle" font-size="15" fill="#152739">官方 StartLux 权重 · NPU 计算</text><text x="781" y="129" text-anchor="middle" font-size="14" fill="#536576">源码不改 · 不注册自定义模型</text><path d="M158 76H209" stroke="#087f79" stroke-width="2" marker-end="url(#arrow)"/><path d="M214 118H164" stroke="#087f79" stroke-width="2" marker-end="url(#arrow)"/><path d="M558 76H621" stroke="#087f79" stroke-width="2" marker-end="url(#arrow)"/><path d="M627 119H565" stroke="#087f79" stroke-width="2" marker-end="url(#arrow)"/></svg><figcaption>图：优先用 Python 接口包装一个独立服务。原版引擎不会自动提供 StartLux 的 <code>/v1/systemone</code> 路由。</figcaption></figure><div class="table"><table><thead><tr><th>服务模块</th><th>处理要求</th><th>避免的错误</th></tr></thead><tbody><tr><td>输入与模板</td><td>复用官方 <code>jevfmt.py</code>，保持选项顺序、思考关闭前缀和 token 编号。</td><td>额外套一层 chat template 会改变模型输入。</td></tr><tr><td>引擎调用</td><td>复用已加载实例；HTTP 使用线程服务器，通过互斥锁串行进入同步引擎，尚未实现跨请求动态合批。</td><td>不能每个 HTTP 请求重新构造 LLM；不能用阻塞调用堵塞异步事件循环。</td></tr><tr><td>概率处理</td><td>取齐合法候选，使用固定题型温度及稳定 softmax。</td><td>只取 top-k 可能漏掉低概率候选；不能重新拟合测试集温度。</td></tr><tr><td>协议返回</td><td>还原业务选项，沿用官方 choice / noul / score、confidence 等定义。</td><td>choice 的 confidence 不等于直接照抄最高概率；复用官方结果格式；当前有限范围的真实 NPU HTTP 仍待验收。</td></tr><tr><td>大选项集合</td><td>当前服务明确限制 2–26 项；超过 26 项返回 422。后续如扩展，需接入官方 wide-choice 分组与合并策略。</td><td>不能简单截断为 A–Z，也不能把独立分组分数直接拼在一起。</td></tr></tbody></table></div><h3>服务层核心计算</h3><p class="sub">以下摘录表达与本轮测试相同的计算链路；HTTP 路由、并发队列及完整协议转换不包含在此代码块中。</p><pre><code># 复用一个已初始化的原版 LLM 实例；下列为服务层核心逻辑。
+# J 是权重目录中的官方 startlux_decision/jevfmt.py。
+row = J.from_systemone(state, question)
+prompt_ids, option_order = J.render_ids(row, tokenizer)
+letter_ids = decision_config[&quot;letter_token_ids&quot;]
+
+params = SamplingParams(
+    max_tokens=1, temperature=0,
+    logprob_token_ids=letter_ids,
+    detokenize=False,
+)
+out = llm.generate([{&quot;prompt_token_ids&quot;: prompt_ids}], params)[0]
+logprobs = out.outputs[0].logprobs[0]
+legal_ids = letter_ids[:len(option_order)]
+# 缺任何候选分数就报错，不用 0 或极小值代替。
+scores = torch.tensor([logprobs[t].logprob for t in legal_ids],
+                      dtype=torch.float32)
+T = decision_config[&quot;temperature_by_type&quot;][row[&quot;type&quot;]]
+probabilities = torch.softmax(scores / T, dim=-1).tolist()
+answer = dict(zip(option_order, probabilities))</code></pre><p>这层是应用代码，放在独立服务目录即可。<strong>不要求把它提交进 vLLM 或 vLLM-Ascend 仓库。</strong></p></section>
+<section id="full-code"><h2>完整新增代码：2 个运行文件，183 行</h2><p><strong>需要写应用代码，两个框架仓库保持不变。</strong>以下直接展示当前文件全文，没有省略号；行数包含注释与空行。下载内容与展示内容来自同一文件。</p><div class="table"><table><thead><tr><th>位置 / 文件</th><th>变更</th><th>行数</th><th>职责</th></tr></thead><tbody><tr><td>vLLM 仓库</td><td>不改</td><td>0</td><td>模型骨干、词表投影、logprobs 接口</td></tr><tr><td>vLLM-Ascend 仓库</td><td>不改</td><td>0</td><td>现有 NPU 执行路径</td></tr><tr><td>serve.py</td><td>新增</td><td>166</td><td>独立 HTTP 服务、调用模型、校准并还原答案</td></tr><tr><td>run_service.sh</td><td>新增</td><td>17</td><td>环境设置、空卡检查与启动</td></tr><tr><td>check_http.py</td><td>新增</td><td>96</td><td>真实服务的 HTTP 验收入口；不使用模拟模型</td></tr><tr><td>test_service.py</td><td>新增</td><td>72</td><td>CPU 接口契约单测；使用模拟引擎，不代表模型精度</td></tr></tbody></table></div><p><strong>运行代码 183 行；验收代码另计 168 行；合计 4 个新增文件、351 行。</strong>权重目录里的官方模板及答案格式函数直接导入，不复制、不修改。</p><div class="table"><table><thead><tr><th>服务代码模块</th><th>具体处理</th></tr></thead><tbody><tr><td>validate_body</td><td>校验问题类型、问题数及候选数量，拒绝当前未支持的图片请求。</td></tr><tr><td>DecisionEngine.__init__</td><td>创建并长期复用原版 LLM；读取官方温度及字母 token 编号。</td></tr><tr><td>DecisionEngine.decide</td><td>官方模板编码 → llm.generate → 读取指定 logprobs → 候选 softmax → 官方 _answer 格式。</td></tr><tr><td>make_handler / main</td><td>提供 /health 与 /v1/systemone；串行进入引擎，返回 JSON 与请求编号。</td></tr></tbody></table></div><h3>serve.py · 完整 166 行</h3><p><a download="serve.py" href="data:text/plain;charset=utf-8;base64,IiIiVGV4dCBkZWNpc2lvbnMgdXNpbmcgdW50b3VjaGVkIHZMTE0sIEFzY2VuZCBhbmQgb2ZmaWNpYWwgU3RhcnRMdXggaGVscGVycy4iIiIKaW1wb3J0IGFyZ3BhcnNlCmltcG9ydCBqc29uCmltcG9ydCBtYXRoCmltcG9ydCBzeXMKaW1wb3J0IHRocmVhZGluZwppbXBvcnQgdGltZQppbXBvcnQgdXVpZApmcm9tIGh0dHAuc2VydmVyIGltcG9ydCBCYXNlSFRUUFJlcXVlc3RIYW5kbGVyLCBUaHJlYWRpbmdIVFRQU2VydmVyCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKCmRlZiB2YWxpZGF0ZV9ib2R5KGJvZHkpOgogICAgaWYgbm90IGlzaW5zdGFuY2UoYm9keSwgZGljdCk6CiAgICAgICAgcmFpc2UgVmFsdWVFcnJvcignYm9keSBtdXN0IGJlIGFuIG9iamVjdCcpCiAgICBpZiBib2R5LmdldCgnaW1hZ2VzJyk6CiAgICAgICAgcmFpc2UgVmFsdWVFcnJvcigndGhpcyBzZXJ2aWNlIHN1cHBvcnRzIHRleHQgb25seScpCiAgICBxdWVzdGlvbnMgPSBib2R5LmdldCgncXVlc3Rpb25zJykKICAgIGlmIG5vdCBpc2luc3RhbmNlKHF1ZXN0aW9ucywgZGljdCkgb3Igbm90IDEgPD0gbGVuKHF1ZXN0aW9ucykgPD0gMTY6CiAgICAgICAgcmFpc2UgVmFsdWVFcnJvcigncXVlc3Rpb25zIG11c3QgY29udGFpbiAxLi4xNiBuYW1lZCBxdWVzdGlvbnMnKQogICAgZm9yIGtleSwgcXVlc3Rpb24gaW4gcXVlc3Rpb25zLml0ZW1zKCk6CiAgICAgICAgaWYgbm90IGlzaW5zdGFuY2Uoa2V5LCBzdHIpIG9yIG5vdCBrZXkgb3Igbm90IGlzaW5zdGFuY2UocXVlc3Rpb24sIGRpY3QpOgogICAgICAgICAgICByYWlzZSBWYWx1ZUVycm9yKCdlYWNoIHF1ZXN0aW9uIG11c3QgYmUgYSBuYW1lZCBvYmplY3QnKQogICAgICAgIGtpbmQgPSBxdWVzdGlvbi5nZXQoJ3R5cGUnLCAnY2hvaWNlJykKICAgICAgICBpZiBraW5kIG5vdCBpbiAoJ2Nob2ljZScsICdub3VsJywgJ3Njb3JlJyk6CiAgICAgICAgICAgIHJhaXNlIFZhbHVlRXJyb3IoJ3N1cHBvcnRlZCB0eXBlczogY2hvaWNlLCBub3VsLCBzY29yZScpCiAgICAgICAgaWYgbm90IGlzaW5zdGFuY2UocXVlc3Rpb24uZ2V0KCdpbnN0cnVjdGlvbnMnKSwgc3RyKSBvciBub3QgcXVlc3Rpb25bJ2luc3RydWN0aW9ucyddLnN0cmlwKCk6CiAgICAgICAgICAgIHJhaXNlIFZhbHVlRXJyb3IoJ2luc3RydWN0aW9ucyBtdXN0IGJlIGEgbm9uLWVtcHR5IHN0cmluZycpCiAgICAgICAgY3JpdGVyaWEgPSBxdWVzdGlvbi5nZXQoJ2NyaXRlcmlhJykKICAgICAgICBpZiBraW5kID09ICdjaG9pY2UnIGFuZCAobm90IGlzaW5zdGFuY2UoY3JpdGVyaWEsIGRpY3QpIG9yIG5vdCAyIDw9IGxlbihjcml0ZXJpYSkgPD0gMjYpOgogICAgICAgICAgICByYWlzZSBWYWx1ZUVycm9yKCdjaG9pY2UgY3JpdGVyaWEgbXVzdCBjb250YWluIDIuLjI2IG5hbWVkIG9wdGlvbnMnKQogICAgICAgIGlmIGtpbmQgPT0gJ3Njb3JlJyBhbmQgKG5vdCBpc2luc3RhbmNlKGNyaXRlcmlhLCAoZGljdCwgbGlzdCkpIG9yIG5vdCAyIDw9IGxlbihjcml0ZXJpYSkgPD0gMTApOgogICAgICAgICAgICByYWlzZSBWYWx1ZUVycm9yKCdzY29yZSBjcml0ZXJpYSBtdXN0IGNvbnRhaW4gMi4uMTAgbGV2ZWxzJykKICAgIHJldHVybiBxdWVzdGlvbnMKCgpjbGFzcyBEZWNpc2lvbkVuZ2luZToKICAgIGRlZiBfX2luaXRfXyhzZWxmLCBtb2RlbCwgdHAsIG1heF9sZW5ndGgpOgogICAgICAgIGltcG9ydCB0b3JjaAogICAgICAgIGZyb20gdmxsbSBpbXBvcnQgTExNLCBTYW1wbGluZ1BhcmFtcwoKICAgICAgICAjIEltcG9ydCB0aGUgZml4ZWQgY2hlY2twb2ludCdzIG9yaWdpbmFsIHJlbmRlcmluZyBhbmQgYW5zd2VyIGhlbHBlcnMuCiAgICAgICAgc3lzLnBhdGguaW5zZXJ0KDAsIHN0cihQYXRoKG1vZGVsKS5yZXNvbHZlKCkpKQogICAgICAgIGZyb20gc3RhcnRsdXhfZGVjaXNpb24gaW1wb3J0IGpldmZtdAogICAgICAgIGZyb20gc3RhcnRsdXhfZGVjaXNpb24ubW9kZWwgaW1wb3J0IFN0YXJ0THV4RGVjaXNpb24KCiAgICAgICAgc2VsZi50b3JjaCwgc2VsZi5KLCBzZWxmLmFuc3dlciA9IHRvcmNoLCBqZXZmbXQsIFN0YXJ0THV4RGVjaXNpb24uX2Fuc3dlcgogICAgICAgIHNlbGYubmFtZSwgc2VsZi5tYXhfcHJvbXB0X2xlbmd0aCA9IFBhdGgobW9kZWwpLm5hbWUsIG1heF9sZW5ndGggLSAxCiAgICAgICAgY2ZnID0ganNvbi5sb2FkcyhQYXRoKG1vZGVsLCAnZGVjaXNpb25fY29uZmlnLmpzb24nKS5yZWFkX3RleHQoKSkKICAgICAgICBzZWxmLnRlbXBlcmF0dXJlcyA9IGNmZ1sndGVtcGVyYXR1cmVfYnlfdHlwZSddCiAgICAgICAgaWYgYW55KG5vdCBtYXRoLmlzZmluaXRlKGZsb2F0KHQpKSBvciBmbG9hdCh0KSA8PSAwIGZvciB0IGluIHNlbGYudGVtcGVyYXR1cmVzLnZhbHVlcygpKToKICAgICAgICAgICAgcmFpc2UgVmFsdWVFcnJvcignY2FsaWJyYXRpb24gdGVtcGVyYXR1cmVzIG11c3QgYmUgZmluaXRlIGFuZCBwb3NpdGl2ZScpCiAgICAgICAgc2VsZi5sbG0gPSBMTE0obW9kZWw9bW9kZWwsIHRlbnNvcl9wYXJhbGxlbF9zaXplPXRwLCBkdHlwZT0nYmZsb2F0MTYnLAogICAgICAgICAgICAgICAgICAgICAgIGVuZm9yY2VfZWFnZXI9VHJ1ZSwgbWF4X21vZGVsX2xlbj1tYXhfbGVuZ3RoLCBtYXhfbnVtX3NlcXM9OCwKICAgICAgICAgICAgICAgICAgICAgICBtYXhfbnVtX2JhdGNoZWRfdG9rZW5zPW1heF9sZW5ndGgsIGdwdV9tZW1vcnlfdXRpbGl6YXRpb249MC44NSwKICAgICAgICAgICAgICAgICAgICAgICBlbmFibGVfcHJlZml4X2NhY2hpbmc9RmFsc2UsIGVuYWJsZV9jaHVua2VkX3ByZWZpbGw9RmFsc2UsCiAgICAgICAgICAgICAgICAgICAgICAgbGltaXRfbW1fcGVyX3Byb21wdD17J2ltYWdlJzogMCwgJ3ZpZGVvJzogMH0sIHNlZWQ9MCwKICAgICAgICAgICAgICAgICAgICAgICBsb2dwcm9ic19tb2RlPSdyYXdfbG9ncHJvYnMnLCBnZW5lcmF0aW9uX2NvbmZpZz0ndmxsbScpCiAgICAgICAgc2VsZi50b2tlbml6ZXIgPSBzZWxmLmxsbS5nZXRfdG9rZW5pemVyKCkKICAgICAgICBzZWxmLmxldHRlcnMgPSBzZWxmLkouY2hlY2tfdG9rZW5pemVyKHNlbGYudG9rZW5pemVyKQogICAgICAgIGlmIHNlbGYubGV0dGVycyAhPSBjZmdbJ2xldHRlcl90b2tlbl9pZHMnXToKICAgICAgICAgICAgcmFpc2UgVmFsdWVFcnJvcignbGV0dGVyIHRva2VuIElEcyBkbyBub3QgbWF0Y2ggdGhlIGNoZWNrcG9pbnQnKQogICAgICAgIHNlbGYucGFyYW1zID0gU2FtcGxpbmdQYXJhbXMobWF4X3Rva2Vucz0xLCB0ZW1wZXJhdHVyZT0wLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbG9ncHJvYl90b2tlbl9pZHM9c2VsZi5sZXR0ZXJzLCBkZXRva2VuaXplPUZhbHNlKQoKICAgIGRlZiBkZWNpZGUoc2VsZiwgYm9keSk6CiAgICAgICAgcXVlc3Rpb25zID0gdmFsaWRhdGVfYm9keShib2R5KQogICAgICAgIHJvd3MgPSBbc2VsZi5KLmZyb21fc3lzdGVtb25lKGJvZHkuZ2V0KCdzdGF0ZScpLCBxLCBrZXkpIGZvciBrZXksIHEgaW4gcXVlc3Rpb25zLml0ZW1zKCldCiAgICAgICAgcHJvbXB0cyA9IFtdCiAgICAgICAgZm9yIHJvdyBpbiByb3dzOgogICAgICAgICAgICBpZHMsIF8gPSBzZWxmLkoucmVuZGVyX2lkcyhyb3csIHNlbGYudG9rZW5pemVyLCBtYXhfbGVuZ3RoPXNlbGYubWF4X3Byb21wdF9sZW5ndGgpCiAgICAgICAgICAgIHByb21wdHMuYXBwZW5kKHsncHJvbXB0X3Rva2VuX2lkcyc6IGlkc30pCiAgICAgICAgb3V0cHV0cyA9IHNlbGYubGxtLmdlbmVyYXRlKHByb21wdHMsIHNlbGYucGFyYW1zLCB1c2VfdHFkbT1GYWxzZSkKICAgICAgICBpZiBsZW4ob3V0cHV0cykgIT0gbGVuKHJvd3MpOgogICAgICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoJ2luY29tcGxldGUgZW5naW5lIHJlc3BvbnNlJykKICAgICAgICBhbnN3ZXJzLCBpbnB1dF90b2tlbnMsIG91dHB1dF90b2tlbnMgPSB7fSwgMCwgMAogICAgICAgIGZvciAoa2V5LCBxdWVzdGlvbiksIHJvdywgcHJvbXB0LCBvdXRwdXQgaW4gemlwKHF1ZXN0aW9ucy5pdGVtcygpLCByb3dzLCBwcm9tcHRzLCBvdXRwdXRzKToKICAgICAgICAgICAgc2FtcGxlID0gb3V0cHV0Lm91dHB1dHNbMF0KICAgICAgICAgICAgbG9ncHJvYnMgPSBzYW1wbGUubG9ncHJvYnNbMF0KICAgICAgICAgICAgbGVnYWwgPSBzZWxmLmxldHRlcnNbOmxlbihyb3dbJ29wdGlvbnMnXSldCiAgICAgICAgICAgIGlmIGFueSh0b2tlbiBub3QgaW4gbG9ncHJvYnMgZm9yIHRva2VuIGluIGxlZ2FsKToKICAgICAgICAgICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcignZW5naW5lIG9taXR0ZWQgY2FuZGlkYXRlIHNjb3JlcycpCiAgICAgICAgICAgIHZhbHVlcyA9IFtsb2dwcm9ic1t0b2tlbl0ubG9ncHJvYiBmb3IgdG9rZW4gaW4gbGVnYWxdCiAgICAgICAgICAgIGlmIG5vdCBhbGwobWF0aC5pc2Zpbml0ZSh2YWx1ZSkgZm9yIHZhbHVlIGluIHZhbHVlcyk6CiAgICAgICAgICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoJ25vbi1maW5pdGUgY2FuZGlkYXRlIHNjb3JlJykKICAgICAgICAgICAgc2NvcmVzID0gc2VsZi50b3JjaC50ZW5zb3IodmFsdWVzLCBkdHlwZT1zZWxmLnRvcmNoLmZsb2F0MzIpCiAgICAgICAgICAgIHRlbXBlcmF0dXJlID0gZmxvYXQoc2VsZi50ZW1wZXJhdHVyZXNbcm93Wyd0eXBlJ11dKQogICAgICAgICAgICBwcm9iYWJpbGl0aWVzID0gc2VsZi50b3JjaC5zb2Z0bWF4KHNjb3JlcyAvIHRlbXBlcmF0dXJlLCBkaW09LTEpLnRvbGlzdCgpCiAgICAgICAgICAgIGFuc3dlcnNba2V5XSA9IHNlbGYuYW5zd2VyKHJvdywgcHJvYmFiaWxpdGllcywgcXVlc3Rpb24pCiAgICAgICAgICAgIGlucHV0X3Rva2VucyArPSBsZW4ocHJvbXB0Wydwcm9tcHRfdG9rZW5faWRzJ10pCiAgICAgICAgICAgIG91dHB1dF90b2tlbnMgKz0gbGVuKHNhbXBsZS50b2tlbl9pZHMpCiAgICAgICAgcmV0dXJuIHsnYW5zd2Vycyc6IGFuc3dlcnMsICd1c2FnZSc6IHsnaW5wdXRfdG9rZW5zJzogaW5wdXRfdG9rZW5zLCAnb3V0cHV0X3Rva2Vucyc6IG91dHB1dF90b2tlbnN9LAogICAgICAgICAgICAgICAgJ21vZGVsJzogc2VsZi5uYW1lfQoKCmRlZiBtYWtlX2hhbmRsZXIoZW5naW5lKToKICAgIGxvY2sgPSB0aHJlYWRpbmcuTG9jaygpCgogICAgY2xhc3MgSGFuZGxlcihCYXNlSFRUUFJlcXVlc3RIYW5kbGVyKToKICAgICAgICBkZWYgc2VuZF9qc29uKHNlbGYsIHN0YXR1cywgYm9keSk6CiAgICAgICAgICAgIGRhdGEgPSBqc29uLmR1bXBzKGJvZHksIGVuc3VyZV9hc2NpaT1GYWxzZSwgYWxsb3dfbmFuPUZhbHNlKS5lbmNvZGUoKQogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2Uoc3RhdHVzKQogICAgICAgICAgICBzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LVR5cGUnLCAnYXBwbGljYXRpb24vanNvbjsgY2hhcnNldD11dGYtOCcpCiAgICAgICAgICAgIHNlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtTGVuZ3RoJywgc3RyKGxlbihkYXRhKSkpCiAgICAgICAgICAgIHNlbGYuc2VuZF9oZWFkZXIoJ3gtdHlwZXNhZmUtcmVxdWVzdC1pZCcsIHV1aWQudXVpZDQoKS5oZXgpCiAgICAgICAgICAgIHNlbGYuZW5kX2hlYWRlcnMoKQogICAgICAgICAgICBzZWxmLndmaWxlLndyaXRlKGRhdGEpCgogICAgICAgIGRlZiBlcnJvcihzZWxmLCBzdGF0dXMsIG1lc3NhZ2UpOgogICAgICAgICAgICBzZWxmLnNlbmRfanNvbihzdGF0dXMsIHsnZXJyb3InOiBtZXNzYWdlLCAnZGV0YWlsJzogWwogICAgICAgICAgICAgICAgeydsb2MnOiBbJ2JvZHknXSwgJ21zZyc6IG1lc3NhZ2UsICd0eXBlJzogJ3ZhbHVlX2Vycm9yJ31dfSkKCiAgICAgICAgZGVmIGRvX0dFVChzZWxmKToKICAgICAgICAgICAgaWYgc2VsZi5wYXRoLnJzdHJpcCgnLycpID09ICcvaGVhbHRoJzoKICAgICAgICAgICAgICAgIHJldHVybiBzZWxmLnNlbmRfanNvbigyMDAsIHsnc3RhdHVzJzogJ29rJywgJ21vZGVsJzogZW5naW5lLm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAnYmFja2VuZCc6ICd2bGxtLWFzY2VuZC1zdG9jaycsICdpbWFnZXMnOiBGYWxzZSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICdtYXhfcHJvbXB0X2xlbmd0aCc6IGVuZ2luZS5tYXhfcHJvbXB0X2xlbmd0aH0pCiAgICAgICAgICAgIHJldHVybiBzZWxmLmVycm9yKDQwNCwgJ25vdCBmb3VuZCcpCgogICAgICAgIGRlZiBkb19QT1NUKHNlbGYpOgogICAgICAgICAgICBpZiBzZWxmLnBhdGgucnN0cmlwKCcvJykgIT0gJy92MS9zeXN0ZW1vbmUnOgogICAgICAgICAgICAgICAgcmV0dXJuIHNlbGYuZXJyb3IoNDA0LCAnbm90IGZvdW5kJykKICAgICAgICAgICAgdHJ5OgogICAgICAgICAgICAgICAgc2l6ZSA9IGludChzZWxmLmhlYWRlcnMuZ2V0KCdDb250ZW50LUxlbmd0aCcsICcwJykpCiAgICAgICAgICAgICAgICBpZiBub3QgMCA8IHNpemUgPD0gMTA0ODU3NjoKICAgICAgICAgICAgICAgICAgICByZXR1cm4gc2VsZi5lcnJvcig0MDAsICdib2R5IG11c3QgYmUgMS4uMTA0ODU3NiBieXRlcycpCiAgICAgICAgICAgICAgICBib2R5ID0ganNvbi5sb2FkcyhzZWxmLnJmaWxlLnJlYWQoc2l6ZSkpCiAgICAgICAgICAgIGV4Y2VwdCAoVmFsdWVFcnJvciwgVW5pY29kZUVycm9yKToKICAgICAgICAgICAgICAgIHJldHVybiBzZWxmLmVycm9yKDQwMCwgJ2ludmFsaWQgSlNPTiBib2R5JykKICAgICAgICAgICAgc3RhcnQgPSB0aW1lLnBlcmZfY291bnRlcigpCiAgICAgICAgICAgIHRyeToKICAgICAgICAgICAgICAgIHZhbGlkYXRlX2JvZHkoYm9keSkKICAgICAgICAgICAgICAgIHdpdGggbG9jazoKICAgICAgICAgICAgICAgICAgICByZXN1bHQgPSBlbmdpbmUuZGVjaWRlKGJvZHkpCiAgICAgICAgICAgIGV4Y2VwdCAoVmFsdWVFcnJvciwgVHlwZUVycm9yLCBLZXlFcnJvcikgYXMgZXhjOgogICAgICAgICAgICAgICAgcmV0dXJuIHNlbGYuZXJyb3IoNDIyLCBzdHIoZXhjKSkKICAgICAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbjoKICAgICAgICAgICAgICAgIHJldHVybiBzZWxmLmVycm9yKDUwMCwgJ2luZmVyZW5jZSBmYWlsZWQ7IGluc3BlY3QgdGhlIHNlcnZpY2UgZW52aXJvbm1lbnQnKQogICAgICAgICAgICByZXN1bHRbJ2xhdGVuY3lfbXMnXSA9IHJvdW5kKCh0aW1lLnBlcmZfY291bnRlcigpIC0gc3RhcnQpICogMTAwMCwgMikKICAgICAgICAgICAgc2VsZi5zZW5kX2pzb24oMjAwLCByZXN1bHQpCgogICAgICAgIGRlZiBsb2dfbWVzc2FnZShzZWxmLCAqX2FyZ3MpOgogICAgICAgICAgICBwYXNzCgogICAgcmV0dXJuIEhhbmRsZXIKCgpkZWYgbWFpbigpOgogICAgcGFyc2VyID0gYXJncGFyc2UuQXJndW1lbnRQYXJzZXIoZGVzY3JpcHRpb249X19kb2NfXykKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoJy0tbW9kZWwnLCByZXF1aXJlZD1UcnVlKQogICAgcGFyc2VyLmFkZF9hcmd1bWVudCgnLS1ob3N0JywgZGVmYXVsdD0nMTI3LjAuMC4xJykKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoJy0tcG9ydCcsIHR5cGU9aW50LCBkZWZhdWx0PTE4MTM1KQogICAgcGFyc2VyLmFkZF9hcmd1bWVudCgnLS10cCcsIHR5cGU9aW50LCBkZWZhdWx0PTIpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCctLW1heC1tb2RlbC1sZW4nLCB0eXBlPWludCwgZGVmYXVsdD00MDk2KQogICAgYXJncyA9IHBhcnNlci5wYXJzZV9hcmdzKCkKICAgIGVuZ2luZSA9IERlY2lzaW9uRW5naW5lKGFyZ3MubW9kZWwsIGFyZ3MudHAsIGFyZ3MubWF4X21vZGVsX2xlbikKICAgIHNlcnZlciA9IFRocmVhZGluZ0hUVFBTZXJ2ZXIoKGFyZ3MuaG9zdCwgYXJncy5wb3J0KSwgbWFrZV9oYW5kbGVyKGVuZ2luZSkpCiAgICBwcmludChqc29uLmR1bXBzKHsncmVhZHknOiBUcnVlLCAnbW9kZWwnOiBlbmdpbmUubmFtZSwgJ3BvcnQnOiBhcmdzLnBvcnR9KSwgZmx1c2g9VHJ1ZSkKICAgIHRyeToKICAgICAgICBzZXJ2ZXIuc2VydmVfZm9yZXZlcigpCiAgICBmaW5hbGx5OgogICAgICAgIHNlcnZlci5zZXJ2ZXJfY2xvc2UoKQoKCmlmIF9fbmFtZV9fID09ICdfX21haW5fXyc6CiAgICBtYWluKCkK">下载 serve.py</a></p><pre><code>&quot;&quot;&quot;Text decisions using untouched vLLM, Ascend and official StartLux helpers.&quot;&quot;&quot;
+import argparse
+import json
+import math
+import sys
+import threading
+import time
+import uuid
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+
+def validate_body(body):
+    if not isinstance(body, dict):
+        raise ValueError(&#x27;body must be an object&#x27;)
+    if body.get(&#x27;images&#x27;):
+        raise ValueError(&#x27;this service supports text only&#x27;)
+    questions = body.get(&#x27;questions&#x27;)
+    if not isinstance(questions, dict) or not 1 &lt;= len(questions) &lt;= 16:
+        raise ValueError(&#x27;questions must contain 1..16 named questions&#x27;)
+    for key, question in questions.items():
+        if not isinstance(key, str) or not key or not isinstance(question, dict):
+            raise ValueError(&#x27;each question must be a named object&#x27;)
+        kind = question.get(&#x27;type&#x27;, &#x27;choice&#x27;)
+        if kind not in (&#x27;choice&#x27;, &#x27;noul&#x27;, &#x27;score&#x27;):
+            raise ValueError(&#x27;supported types: choice, noul, score&#x27;)
+        if not isinstance(question.get(&#x27;instructions&#x27;), str) or not question[&#x27;instructions&#x27;].strip():
+            raise ValueError(&#x27;instructions must be a non-empty string&#x27;)
+        criteria = question.get(&#x27;criteria&#x27;)
+        if kind == &#x27;choice&#x27; and (not isinstance(criteria, dict) or not 2 &lt;= len(criteria) &lt;= 26):
+            raise ValueError(&#x27;choice criteria must contain 2..26 named options&#x27;)
+        if kind == &#x27;score&#x27; and (not isinstance(criteria, (dict, list)) or not 2 &lt;= len(criteria) &lt;= 10):
+            raise ValueError(&#x27;score criteria must contain 2..10 levels&#x27;)
+    return questions
+
+
+class DecisionEngine:
+    def __init__(self, model, tp, max_length):
+        import torch
+        from vllm import LLM, SamplingParams
+
+        # Import the fixed checkpoint&#x27;s original rendering and answer helpers.
+        sys.path.insert(0, str(Path(model).resolve()))
+        from startlux_decision import jevfmt
+        from startlux_decision.model import StartLuxDecision
+
+        self.torch, self.J, self.answer = torch, jevfmt, StartLuxDecision._answer
+        self.name, self.max_prompt_length = Path(model).name, max_length - 1
+        cfg = json.loads(Path(model, &#x27;decision_config.json&#x27;).read_text())
+        self.temperatures = cfg[&#x27;temperature_by_type&#x27;]
+        if any(not math.isfinite(float(t)) or float(t) &lt;= 0 for t in self.temperatures.values()):
+            raise ValueError(&#x27;calibration temperatures must be finite and positive&#x27;)
+        self.llm = LLM(model=model, tensor_parallel_size=tp, dtype=&#x27;bfloat16&#x27;,
+                       enforce_eager=True, max_model_len=max_length, max_num_seqs=8,
+                       max_num_batched_tokens=max_length, gpu_memory_utilization=0.85,
+                       enable_prefix_caching=False, enable_chunked_prefill=False,
+                       limit_mm_per_prompt={&#x27;image&#x27;: 0, &#x27;video&#x27;: 0}, seed=0,
+                       logprobs_mode=&#x27;raw_logprobs&#x27;, generation_config=&#x27;vllm&#x27;)
+        self.tokenizer = self.llm.get_tokenizer()
+        self.letters = self.J.check_tokenizer(self.tokenizer)
+        if self.letters != cfg[&#x27;letter_token_ids&#x27;]:
+            raise ValueError(&#x27;letter token IDs do not match the checkpoint&#x27;)
+        self.params = SamplingParams(max_tokens=1, temperature=0,
+                                     logprob_token_ids=self.letters, detokenize=False)
+
+    def decide(self, body):
+        questions = validate_body(body)
+        rows = [self.J.from_systemone(body.get(&#x27;state&#x27;), q, key) for key, q in questions.items()]
+        prompts = []
+        for row in rows:
+            ids, _ = self.J.render_ids(row, self.tokenizer, max_length=self.max_prompt_length)
+            prompts.append({&#x27;prompt_token_ids&#x27;: ids})
+        outputs = self.llm.generate(prompts, self.params, use_tqdm=False)
+        if len(outputs) != len(rows):
+            raise RuntimeError(&#x27;incomplete engine response&#x27;)
+        answers, input_tokens, output_tokens = {}, 0, 0
+        for (key, question), row, prompt, output in zip(questions.items(), rows, prompts, outputs):
+            sample = output.outputs[0]
+            logprobs = sample.logprobs[0]
+            legal = self.letters[:len(row[&#x27;options&#x27;])]
+            if any(token not in logprobs for token in legal):
+                raise RuntimeError(&#x27;engine omitted candidate scores&#x27;)
+            values = [logprobs[token].logprob for token in legal]
+            if not all(math.isfinite(value) for value in values):
+                raise RuntimeError(&#x27;non-finite candidate score&#x27;)
+            scores = self.torch.tensor(values, dtype=self.torch.float32)
+            temperature = float(self.temperatures[row[&#x27;type&#x27;]])
+            probabilities = self.torch.softmax(scores / temperature, dim=-1).tolist()
+            answers[key] = self.answer(row, probabilities, question)
+            input_tokens += len(prompt[&#x27;prompt_token_ids&#x27;])
+            output_tokens += len(sample.token_ids)
+        return {&#x27;answers&#x27;: answers, &#x27;usage&#x27;: {&#x27;input_tokens&#x27;: input_tokens, &#x27;output_tokens&#x27;: output_tokens},
+                &#x27;model&#x27;: self.name}
+
+
+def make_handler(engine):
+    lock = threading.Lock()
+
+    class Handler(BaseHTTPRequestHandler):
+        def send_json(self, status, body):
+            data = json.dumps(body, ensure_ascii=False, allow_nan=False).encode()
+            self.send_response(status)
+            self.send_header(&#x27;Content-Type&#x27;, &#x27;application/json; charset=utf-8&#x27;)
+            self.send_header(&#x27;Content-Length&#x27;, str(len(data)))
+            self.send_header(&#x27;x-typesafe-request-id&#x27;, uuid.uuid4().hex)
+            self.end_headers()
+            self.wfile.write(data)
+
+        def error(self, status, message):
+            self.send_json(status, {&#x27;error&#x27;: message, &#x27;detail&#x27;: [
+                {&#x27;loc&#x27;: [&#x27;body&#x27;], &#x27;msg&#x27;: message, &#x27;type&#x27;: &#x27;value_error&#x27;}]})
+
+        def do_GET(self):
+            if self.path.rstrip(&#x27;/&#x27;) == &#x27;/health&#x27;:
+                return self.send_json(200, {&#x27;status&#x27;: &#x27;ok&#x27;, &#x27;model&#x27;: engine.name,
+                                           &#x27;backend&#x27;: &#x27;vllm-ascend-stock&#x27;, &#x27;images&#x27;: False,
+                                           &#x27;max_prompt_length&#x27;: engine.max_prompt_length})
+            return self.error(404, &#x27;not found&#x27;)
+
+        def do_POST(self):
+            if self.path.rstrip(&#x27;/&#x27;) != &#x27;/v1/systemone&#x27;:
+                return self.error(404, &#x27;not found&#x27;)
+            try:
+                size = int(self.headers.get(&#x27;Content-Length&#x27;, &#x27;0&#x27;))
+                if not 0 &lt; size &lt;= 1048576:
+                    return self.error(400, &#x27;body must be 1..1048576 bytes&#x27;)
+                body = json.loads(self.rfile.read(size))
+            except (ValueError, UnicodeError):
+                return self.error(400, &#x27;invalid JSON body&#x27;)
+            start = time.perf_counter()
+            try:
+                validate_body(body)
+                with lock:
+                    result = engine.decide(body)
+            except (ValueError, TypeError, KeyError) as exc:
+                return self.error(422, str(exc))
+            except Exception:
+                return self.error(500, &#x27;inference failed; inspect the service environment&#x27;)
+            result[&#x27;latency_ms&#x27;] = round((time.perf_counter() - start) * 1000, 2)
+            self.send_json(200, result)
+
+        def log_message(self, *_args):
+            pass
+
+    return Handler
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(&#x27;--model&#x27;, required=True)
+    parser.add_argument(&#x27;--host&#x27;, default=&#x27;127.0.0.1&#x27;)
+    parser.add_argument(&#x27;--port&#x27;, type=int, default=18135)
+    parser.add_argument(&#x27;--tp&#x27;, type=int, default=2)
+    parser.add_argument(&#x27;--max-model-len&#x27;, type=int, default=4096)
+    args = parser.parse_args()
+    engine = DecisionEngine(args.model, args.tp, args.max_model_len)
+    server = ThreadingHTTPServer((args.host, args.port), make_handler(engine))
+    print(json.dumps({&#x27;ready&#x27;: True, &#x27;model&#x27;: engine.name, &#x27;port&#x27;: args.port}), flush=True)
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+
+
+if __name__ == &#x27;__main__&#x27;:
+    main()
+</code></pre><h3>run_service.sh · 完整 17 行</h3><p><a download="run_service.sh" href="data:text/plain;charset=utf-8;base64,IyEvdXNyL2Jpbi9lbnYgYmFzaApzZXQgLWV1byBwaXBlZmFpbApjZCAvd29ya3NwYWNlL3N0b2NrCnNvdXJjZSAvdXNyL2xvY2FsL0FzY2VuZC9hc2NlbmQtdG9vbGtpdC9zZXRfZW52LnNoCmV4cG9ydCBBU0NFTkRfUlRfVklTSUJMRV9ERVZJQ0VTPSIke1NUT0NLX05QVV9ERVZJQ0VTOi00LDV9Igpmb3IgY2FyZCBpbiAke0FTQ0VORF9SVF9WSVNJQkxFX0RFVklDRVMvLywvIH07IGRvCiAgZGV2aWNlX3N0YXRlPSQobnB1LXNtaSBpbmZvIC10IHByb2MtbWVtIC1pICIkY2FyZCIgLWMgMCkKICBpZiBbWyAiJGRldmljZV9zdGF0ZSIgIT0gKiJObyBwcm9jZXNzIGluIGRldmljZSIqIF1dOyB0aGVuCiAgICBlY2hvICJOUFUgJGNhcmQgaXMgb2NjdXBpZWQgb3IgaXRzIHN0YXRlIGlzIHVua25vd247IHJlZnVzaW5nIHRvIHN0YXJ0LiIgPiYyCiAgICBleGl0IDEKICBmaQpkb25lCmV4cG9ydCBPTVBfTlVNX1RIUkVBRFM9MQpleHBvcnQgVkxMTV9XT1JLRVJfTVVMVElQUk9DX01FVEhPRD1zcGF3bgpleHBvcnQgUFlUSE9OUEFUSD0iJFBXRC92bGxtOiRQV0QvdmxsbS1hc2NlbmQ6JHtQWVRIT05QQVRIOi19IgpleGVjIC93b3Jrc3BhY2UvZGVjaWRlci8udmVudi9iaW4vcHl0aG9uIHNjcmlwdHMvc2VydmUucHkgXAogIC0tbW9kZWwgL21vZGVscy9zdGFydGx1eC9TdGFydEx1eC1EZWNpc2lvbi0zNUItQTNCICIkQCIK">下载 run_service.sh</a></p><pre><code>#!/usr/bin/env bash
+set -euo pipefail
+cd /workspace/stock
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+export ASCEND_RT_VISIBLE_DEVICES=&quot;${STOCK_NPU_DEVICES:-4,5}&quot;
+for card in ${ASCEND_RT_VISIBLE_DEVICES//,/ }; do
+  device_state=$(npu-smi info -t proc-mem -i &quot;$card&quot; -c 0)
+  if [[ &quot;$device_state&quot; != *&quot;No process in device&quot;* ]]; then
+    echo &quot;NPU $card is occupied or its state is unknown; refusing to start.&quot; &gt;&amp;2
+    exit 1
+  fi
+done
+export OMP_NUM_THREADS=1
+export VLLM_WORKER_MULTIPROC_METHOD=spawn
+export PYTHONPATH=&quot;$PWD/vllm:$PWD/vllm-ascend:${PYTHONPATH:-}&quot;
+exec /workspace/decider/.venv/bin/python scripts/serve.py \
+  --model /models/startlux/StartLux-Decision-35B-A3B &quot;$@&quot;
+</code></pre><h3>当前服务的准确支持范围</h3><div class="table"><table><thead><tr><th>项目</th><th>当前实现</th></tr></thead><tbody><tr><td>问题类型</td><td>choice / noul / score；每个请求 1–16 个问题。</td></tr><tr><td>候选数量</td><td>choice 2–26 项；score 2–10 级；不支持 wide-choice，明确返回 422。</td></tr><tr><td>输入长度</td><td>最大引擎长度默认 4096，提示词最多 4095 tokens，为一个采样 token 留位置。</td></tr><tr><td>协议范围</td><td>复用官方 _answer，覆盖三类答案字段；提供 /health 和 /v1/systemone，未实现官方全部路由与图片能力。</td></tr><tr><td>计费 / 用量字段</td><td>usage.output_tokens 记录引擎实际采样数量，通常每题 1；与官方不采样路径报告 0 的口径不同。采样文本不返回给业务。</td></tr><tr><td>并发与吞吐</td><td>请求线程共用一个互斥锁；单请求问题批量提交，跨请求串行，无跨请求动态合批承诺。</td></tr><tr><td>设备保护</td><td>启动脚本默认检查 4、5 号卡；忙碌或状态未知就拒绝启动，不停止其他任务。</td></tr></tbody></table></div><h3>完整启动、调用与验收命令</h3><p>适用于本轮已经准备的隔离容器。源码目录为 /workspace/stock/vllm 与 /workspace/stock/vllm-ascend；服务文件位于 /workspace/stock/scripts；依赖解释器为 /workspace/decider/.venv/bin/python；原始权重挂载到 /models/startlux/StartLux-Decision-35B-A3B。上述目录是本次已准备环境的组成部分，不能省略。</p><pre><code># 进入本任务复现目录；以下在宿主机执行。
+# 容器已保留同版本源码、完整算子包、权重与虚拟环境。
+# scripts/serve.py、run_service.sh、check_http.py 已放入挂载目录。
+docker start decision-stock-20261010
+
+# 启动前确认 4、5 号卡空闲；脚本也会检查，忙碌时拒绝启动。
+npu-smi info -t proc-mem -i 4 -c 0
+npu-smi info -t proc-mem -i 5 -c 0
+
+# 终端 A：前台运行，可直接看到加载、启动与报错。
+docker exec --privileged -e STOCK_NPU_DEVICES=4,5 \
+  decision-stock-20261010 bash scripts/run_service.sh \
+  --host 127.0.0.1 --port 18135 --tp 2 --max-model-len 4096</code></pre><pre><code># 终端 B：ready 日志出现后，检查服务并发送真实请求。
+curl --fail-with-body http://127.0.0.1:18135/health
+curl --fail-with-body http://127.0.0.1:18135/v1/systemone \
+  -H &#x27;Content-Type: application/json&#x27; \
+  --data-binary @- &lt;&lt;&#x27;JSON&#x27;
+{
+  &quot;state&quot;: &quot;I was charged twice for one coffee.&quot;,
+  &quot;questions&quot;: {
+    &quot;team&quot;: {
+      &quot;type&quot;: &quot;choice&quot;,
+      &quot;instructions&quot;: &quot;Which team should handle this?&quot;,
+      &quot;criteria&quot;: {
+        &quot;billing&quot;: &quot;Payments and refunds&quot;,
+        &quot;shipping&quot;: &quot;Delivery&quot;,
+        &quot;technical&quot;: &quot;Software problems&quot;
+      }
+    }
+  }
+}
+JSON
+
+# 实机验收：输出文件不存在时才能写，避免覆盖后续历史记录。
+# 当前尚未执行这一条真实 NPU HTTP 验收命令。
+docker exec decision-stock-20261010 bash -lc \
+  &#x27;test ! -e results/http-live.json &amp;&amp; /workspace/decider/.venv/bin/python scripts/check_http.py --base-url http://127.0.0.1:18135 --output results/http-live.json&#x27;
+
+# 测试完成后停止本任务容器，释放卡。
+docker stop decision-stock-20261010</code></pre><p>验收脚本：<a download="check_http.py" href="data:text/plain;charset=utf-8;base64,IiIiUmVhbC1zZXJ2aWNlIEhUVFAgYWNjZXB0YW5jZTsgbm8gbW9kZWwgbW9ja3Mgb3IgcmVjb3JkZWQtc2NvcmUgc3Vic3RpdHV0aW9uLiIiIgppbXBvcnQgYXJncGFyc2UKaW1wb3J0IGpzb24KaW1wb3J0IG1hdGgKaW1wb3J0IHVybGxpYi5lcnJvcgppbXBvcnQgdXJsbGliLnJlcXVlc3QKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgoKZGVmIHJlcXVlc3QoYmFzZSwgbWV0aG9kLCBib2R5PU5vbmUsIHBhdGg9Jy92MS9zeXN0ZW1vbmUnKToKICAgIGRhdGEgPSBqc29uLmR1bXBzKGJvZHkpLmVuY29kZSgpIGlmIGJvZHkgaXMgbm90IE5vbmUgZWxzZSBOb25lCiAgICByZXEgPSB1cmxsaWIucmVxdWVzdC5SZXF1ZXN0KGJhc2UgKyBwYXRoLCBkYXRhPWRhdGEsIG1ldGhvZD1tZXRob2QsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGhlYWRlcnM9eydDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbid9KQogICAgdHJ5OgogICAgICAgIHJlc3BvbnNlID0gdXJsbGliLnJlcXVlc3QudXJsb3BlbihyZXEsIHRpbWVvdXQ9MTgwKQogICAgZXhjZXB0IHVybGxpYi5lcnJvci5IVFRQRXJyb3IgYXMgZXhjOgogICAgICAgIHJlc3BvbnNlID0gZXhjCiAgICB3aXRoIHJlc3BvbnNlOgogICAgICAgIHJldHVybiByZXNwb25zZS5zdGF0dXMsIGpzb24ubG9hZChyZXNwb25zZSksIHJlc3BvbnNlLmhlYWRlcnMuZ2V0KCd4LXR5cGVzYWZlLXJlcXVlc3QtaWQnKQoKCmRlZiBjYXNlcygpOgogICAgY3JpdGVyaWEgPSB7J2JpbGxpbmcnOiAnUGF5bWVudHMgYW5kIHJlZnVuZHMnLCAnc2hpcHBpbmcnOiAnRGVsaXZlcnknLCAndGVjaG5pY2FsJzogJ1NvZnR3YXJlIHByb2JsZW1zJ30KICAgIHJldHVybiBbCiAgICAgICAgKCdiaWxsaW5nJywgJ0kgd2FzIGNoYXJnZWQgdHdpY2UgZm9yIG9uZSBjb2ZmZWUuJywKICAgICAgICAgeyd0eXBlJzogJ2Nob2ljZScsICdpbnN0cnVjdGlvbnMnOiAnV2hpY2ggdGVhbSBzaG91bGQgaGFuZGxlIHRoaXM/JywgJ2NyaXRlcmlhJzogY3JpdGVyaWF9LCAnYmlsbGluZycpLAogICAgICAgICgnc2hpcHBpbmcnLCAnTXkgcGFja2FnZSBoYXMgbm90IGFycml2ZWQuIFRyYWNraW5nIHNheXMgZGVsYXllZC4nLAogICAgICAgICB7J3R5cGUnOiAnY2hvaWNlJywgJ2luc3RydWN0aW9ucyc6ICdXaGljaCB0ZWFtIHNob3VsZCBoYW5kbGUgdGhpcz8nLCAnY3JpdGVyaWEnOiBjcml0ZXJpYX0sICdzaGlwcGluZycpLAogICAgICAgICgneWVzJywgJ1RoZSBudW1iZXIgaXMgOC4nLCB7J3R5cGUnOiAnbm91bCcsICdpbnN0cnVjdGlvbnMnOiAnSXMgdGhlIG51bWJlciBldmVuPyd9LCBUcnVlKSwKICAgICAgICAoJ25vJywgJ1RoZSBudW1iZXIgaXMgNy4nLCB7J3R5cGUnOiAnbm91bCcsICdpbnN0cnVjdGlvbnMnOiAnSXMgdGhlIG51bWJlciBldmVuPyd9LCBGYWxzZSksCiAgICAgICAgKCdzY29yZScsICdUaGUgYXBwIGZhaWxzIHRvIHN0YXJ0LCBzbyB0aGUgY3VzdG9tZXIgY2Fubm90IHVzZSBpdC4nLAogICAgICAgICB7J3R5cGUnOiAnc2NvcmUnLCAnaW5zdHJ1Y3Rpb25zJzogJ0hvdyBzZXZlcmUgaXMgdGhlIGltcGFjdD8nLAogICAgICAgICAgJ2NyaXRlcmlhJzogWydjb3NtZXRpYycsICdhbm5veWluZycsICdibG9ja3MgdGhlIGN1c3RvbWVyJ119LCAnMicpLAogICAgXQoKCmRlZiBjaGVjayhiYXNlKToKICAgIHN0YXR1cywgaGVhbHRoLCBfID0gcmVxdWVzdChiYXNlLCAnR0VUJywgcGF0aD0nL2hlYWx0aCcpCiAgICBhc3NlcnQgc3RhdHVzID09IDIwMCBhbmQgaGVhbHRoWydzdGF0dXMnXSA9PSAnb2snCiAgICByZXN1bHRzID0gW10KICAgIGZvciBuYW1lLCBzdGF0ZSwgcXVlc3Rpb24sIGV4cGVjdGVkIGluIGNhc2VzKCk6CiAgICAgICAgc3RhdHVzLCByZXN1bHQsIHJlcXVlc3RfaWQgPSByZXF1ZXN0KGJhc2UsICdQT1NUJywgeydzdGF0ZSc6IHN0YXRlLCAncXVlc3Rpb25zJzoge25hbWU6IHF1ZXN0aW9ufX0pCiAgICAgICAgYXNzZXJ0IHN0YXR1cyA9PSAyMDAgYW5kIHJlcXVlc3RfaWQsIHJlc3VsdAogICAgICAgIGFuc3dlciA9IHJlc3VsdFsnYW5zd2VycyddW25hbWVdCiAgICAgICAgaWYgYW5zd2VyWyd0eXBlJ10gPT0gJ25vdWwnOgogICAgICAgICAgICBhc3NlcnQgMCA8PSBhbnN3ZXJbJ25vdWwnXSA8PSAxIGFuZCAoYW5zd2VyWydub3VsJ10gPiAwLjUpID09IGV4cGVjdGVkCiAgICAgICAgZWxzZToKICAgICAgICAgICAgcHJvYnMgPSBhbnN3ZXJbJ3Byb2JhYmlsaXRpZXMnXQogICAgICAgICAgICBhc3NlcnQgYWxsKG1hdGguaXNmaW5pdGUocCkgYW5kIDAgPD0gcCA8PSAxIGZvciBwIGluIHByb2JzLnZhbHVlcygpKQogICAgICAgICAgICBhc3NlcnQgYWJzKHN1bShwcm9icy52YWx1ZXMoKSkgLSAxKSA8IDFlLTYKICAgICAgICAgICAgYXNzZXJ0IG1heChwcm9icywga2V5PXByb2JzLmdldCkgPT0gZXhwZWN0ZWQKICAgICAgICAgICAgYXNzZXJ0IDAgPD0gYW5zd2VyWydjb25maWRlbmNlJ10gPD0gMQogICAgICAgICAgICBpZiBhbnN3ZXJbJ3R5cGUnXSA9PSAnY2hvaWNlJzoKICAgICAgICAgICAgICAgIGFzc2VydCBhbnN3ZXJbJ2Nob2ljZSddID09IGV4cGVjdGVkCiAgICAgICAgICAgICAgICBuID0gbGVuKHByb2JzKQogICAgICAgICAgICAgICAgYXNzZXJ0IGFicyhhbnN3ZXJbJ2NvbmZpZGVuY2UnXSAtIChuICogbWF4KHByb2JzLnZhbHVlcygpKSAtIDEpIC8gKG4gLSAxKSkgPCAxZS02CiAgICAgICAgICAgIGVsc2U6CiAgICAgICAgICAgICAgICBhc3NlcnQgYWJzKGFuc3dlclsnc2NvcmUnXSAtIHN1bShpbnQoaykgKiBwIGZvciBrLCBwIGluIHByb2JzLml0ZW1zKCkpKSA8IDFlLTYKICAgICAgICAgICAgICAgIGFzc2VydCBhbnN3ZXJbJ2xlZ2VuZCddWycyJ10gPT0gJ2Jsb2NrcyB0aGUgY3VzdG9tZXInCiAgICAgICAgYXNzZXJ0IHJlc3VsdFsndXNhZ2UnXVsnaW5wdXRfdG9rZW5zJ10gPiAwIGFuZCByZXN1bHRbJ3VzYWdlJ11bJ291dHB1dF90b2tlbnMnXSA9PSAxCiAgICAgICAgcmVzdWx0cy5hcHBlbmQoeydjYXNlJzogbmFtZSwgJ3Jlc3BvbnNlJzogcmVzdWx0fSkKICAgIGJvZHkgPSB7J3N0YXRlJzogJ1RoZSBudW1iZXIgaXMgOC4nLCAncXVlc3Rpb25zJzogewogICAgICAgICdldmVuJzogeyd0eXBlJzogJ25vdWwnLCAnaW5zdHJ1Y3Rpb25zJzogJ0lzIHRoZSBudW1iZXIgZXZlbj8nfSwKICAgICAgICAnb2RkJzogeyd0eXBlJzogJ25vdWwnLCAnaW5zdHJ1Y3Rpb25zJzogJ0lzIHRoZSBudW1iZXIgb2RkPyd9fX0KICAgIHN0YXR1cywgcmVzdWx0LCBfID0gcmVxdWVzdChiYXNlLCAnUE9TVCcsIGJvZHkpCiAgICBhc3NlcnQgc3RhdHVzID09IDIwMCBhbmQgcmVzdWx0WydhbnN3ZXJzJ11bJ2V2ZW4nXVsnbm91bCddID4gMC41CiAgICBhc3NlcnQgcmVzdWx0WydhbnN3ZXJzJ11bJ29kZCddWydub3VsJ10gPCAwLjUgYW5kIHJlc3VsdFsndXNhZ2UnXVsnb3V0cHV0X3Rva2VucyddID09IDIKICAgIHJlc3VsdHMuYXBwZW5kKHsnY2FzZSc6ICd0d29fcXVlc3Rpb25zJywgJ3Jlc3BvbnNlJzogcmVzdWx0fSkKICAgIGludmFsaWQgPSBbTm9uZSwge30sIHsncXVlc3Rpb25zJzogW119LCB7J3F1ZXN0aW9ucyc6IHsncSc6IHt9fX0sCiAgICAgICAgICAgICAgIHsnaW1hZ2VzJzogWyd4J10sICdxdWVzdGlvbnMnOiB7J3EnOiB7J3R5cGUnOiAnbm91bCcsICdpbnN0cnVjdGlvbnMnOiAnVGVzdCd9fX0sCiAgICAgICAgICAgICAgIHsncXVlc3Rpb25zJzogeydxJzogeyd0eXBlJzogJ2Nob2ljZScsICdpbnN0cnVjdGlvbnMnOiAnVGVzdCcsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICdjcml0ZXJpYSc6IHtzdHIoaSk6ICd4JyBmb3IgaSBpbiByYW5nZSgyNyl9fX19LAogICAgICAgICAgICAgICB7J3F1ZXN0aW9ucyc6IHsncSc6IHsndHlwZSc6ICdzY29yZScsICdpbnN0cnVjdGlvbnMnOiAnVGVzdCcsICdjcml0ZXJpYSc6IFsneCddfX19LAogICAgICAgICAgICAgICB7J3N0YXRlJzogJ3dvcmQgJyAqIDUwMDAsICdxdWVzdGlvbnMnOiB7J3EnOiB7J3R5cGUnOiAnbm91bCcsICdpbnN0cnVjdGlvbnMnOiAnVGVzdCd9fX1dCiAgICBmb3IgYm9keSBpbiBpbnZhbGlkOgogICAgICAgIHN0YXR1cywgcmVzdWx0LCBfID0gcmVxdWVzdChiYXNlLCAnUE9TVCcsIGJvZHkpCiAgICAgICAgYXNzZXJ0IHN0YXR1cyBpbiAoNDAwLCA0MjIpIGFuZCAnZXJyb3InIGluIHJlc3VsdCwgcmVzdWx0CiAgICBzdGF0dXMsIF8sIF8gPSByZXF1ZXN0KGJhc2UsICdHRVQnLCBwYXRoPScvbWlzc2luZycpCiAgICBhc3NlcnQgc3RhdHVzID09IDQwNAogICAgcmV0dXJuIHsnc3RhdHVzJzogJ3Bhc3NlZCcsICdoZWFsdGhfY2hlY2tzJzogMSwgJ2RlY2lzaW9uX3JlcXVlc3RzJzogNiwKICAgICAgICAgICAgJ2RlY2lzaW9ucyc6IDcsICdpbnZhbGlkX3JlcXVlc3RzJzogOCwgJ25vdF9mb3VuZF9jaGVja3MnOiAxLCAncmVzdWx0cyc6IHJlc3VsdHN9CgoKZGVmIG1haW4oKToKICAgIHBhcnNlciA9IGFyZ3BhcnNlLkFyZ3VtZW50UGFyc2VyKGRlc2NyaXB0aW9uPV9fZG9jX18pCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCctLWJhc2UtdXJsJywgZGVmYXVsdD0naHR0cDovLzEyNy4wLjAuMToxODEzNScpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCctLW91dHB1dCcsIHJlcXVpcmVkPVRydWUpCiAgICBhcmdzID0gcGFyc2VyLnBhcnNlX2FyZ3MoKQogICAgcmVzdWx0ID0gY2hlY2soYXJncy5iYXNlX3VybCkKICAgIHJlc3VsdFsnbW9kZSddID0gJ2xpdmVfaHR0cCcKICAgIFBhdGgoYXJncy5vdXRwdXQpLndyaXRlX3RleHQoanNvbi5kdW1wcyhyZXN1bHQsIGVuc3VyZV9hc2NpaT1GYWxzZSwgaW5kZW50PTIpKQogICAgcHJpbnQoanNvbi5kdW1wcyh7azogdiBmb3IgaywgdiBpbiByZXN1bHQuaXRlbXMoKSBpZiBrICE9ICdyZXN1bHRzJ30pKQoKCmlmIF9fbmFtZV9fID09ICdfX21haW5fXyc6CiAgICBtYWluKCkK">下载 check_http.py</a>；CPU 单测：<a download="test_service.py" href="data:text/plain;charset=utf-8;base64,IiIiQ1BVIEhUVFAgY29udHJhY3QgY2hlY2tzLiBUaGVzZSBkbyBub3QgZXN0YWJsaXNoIG1vZGVsIGFjY3VyYWN5LiIiIgppbXBvcnQgdGhyZWFkaW5nCmltcG9ydCB1bml0dGVzdApmcm9tIGh0dHAuc2VydmVyIGltcG9ydCBUaHJlYWRpbmdIVFRQU2VydmVyCmZyb20gdHlwZXMgaW1wb3J0IFNpbXBsZU5hbWVzcGFjZQoKZnJvbSBjaGVja19odHRwIGltcG9ydCByZXF1ZXN0CmZyb20gc2VydmUgaW1wb3J0IG1ha2VfaGFuZGxlciwgdmFsaWRhdGVfYm9keQoKCmNsYXNzIFNlcnZpY2VDb250cmFjdCh1bml0dGVzdC5UZXN0Q2FzZSk6CiAgICBkZWYgc2V0VXAoc2VsZik6CiAgICAgICAgc2VsZi5jYWxscyA9IFtdCgogICAgICAgIGRlZiBkZWNpZGUoYm9keSk6CiAgICAgICAgICAgIHNlbGYuY2FsbHMuYXBwZW5kKGJvZHkpCiAgICAgICAgICAgIHJldHVybiB7J2Fuc3dlcnMnOiB7J3EnOiB7J3R5cGUnOiAnbm91bCcsICdub3VsJzogMC44fX0sCiAgICAgICAgICAgICAgICAgICAgJ3VzYWdlJzogeydpbnB1dF90b2tlbnMnOiA0LCAnb3V0cHV0X3Rva2Vucyc6IDF9LCAnbW9kZWwnOiAnZml4dHVyZSd9CgogICAgICAgIGVuZ2luZSA9IFNpbXBsZU5hbWVzcGFjZShuYW1lPSdmaXh0dXJlJywgbWF4X3Byb21wdF9sZW5ndGg9NDA5NSwgZGVjaWRlPWRlY2lkZSkKICAgICAgICBzZWxmLnNlcnZlciA9IFRocmVhZGluZ0hUVFBTZXJ2ZXIoKCcxMjcuMC4wLjEnLCAwKSwgbWFrZV9oYW5kbGVyKGVuZ2luZSkpCiAgICAgICAgc2VsZi50aHJlYWQgPSB0aHJlYWRpbmcuVGhyZWFkKHRhcmdldD1zZWxmLnNlcnZlci5zZXJ2ZV9mb3JldmVyKQogICAgICAgIHNlbGYudGhyZWFkLnN0YXJ0KCkKICAgICAgICBzZWxmLmJhc2UgPSBmJ2h0dHA6Ly8xMjcuMC4wLjE6e3NlbGYuc2VydmVyLnNlcnZlcl9wb3J0fScKCiAgICBkZWYgdGVhckRvd24oc2VsZik6CiAgICAgICAgc2VsZi5zZXJ2ZXIuc2h1dGRvd24oKQogICAgICAgIHNlbGYuc2VydmVyLnNlcnZlcl9jbG9zZSgpCiAgICAgICAgc2VsZi50aHJlYWQuam9pbigpCgogICAgZGVmIHRlc3RfdmFsaWRfY29udHJhY3Qoc2VsZik6CiAgICAgICAgc3RhdHVzLCBoZWFsdGgsIHJlcXVlc3RfaWQgPSByZXF1ZXN0KHNlbGYuYmFzZSwgJ0dFVCcsIHBhdGg9Jy9oZWFsdGgnKQogICAgICAgIHNlbGYuYXNzZXJ0RXF1YWwoKHN0YXR1cywgaGVhbHRoWydpbWFnZXMnXSksICgyMDAsIEZhbHNlKSkKICAgICAgICBzZWxmLmFzc2VydFRydWUocmVxdWVzdF9pZCkKICAgICAgICBib2R5ID0geydzdGF0ZSc6ICdleGFtcGxlJywgJ3F1ZXN0aW9ucyc6IHsncSc6IHsndHlwZSc6ICdub3VsJywgJ2luc3RydWN0aW9ucyc6ICdUZXN0J319fQogICAgICAgIHN0YXR1cywgcmVzdWx0LCByZXF1ZXN0X2lkID0gcmVxdWVzdChzZWxmLmJhc2UsICdQT1NUJywgYm9keSkKICAgICAgICBzZWxmLmFzc2VydEVxdWFsKHN0YXR1cywgMjAwKQogICAgICAgIHNlbGYuYXNzZXJ0RXF1YWwoc2VsZi5jYWxscywgW2JvZHldKQogICAgICAgIHNlbGYuYXNzZXJ0RXF1YWwocmVzdWx0WydhbnN3ZXJzJ11bJ3EnXVsnbm91bCddLCAwLjgpCiAgICAgICAgc2VsZi5hc3NlcnRJbignbGF0ZW5jeV9tcycsIHJlc3VsdCkKICAgICAgICBzZWxmLmFzc2VydFRydWUocmVxdWVzdF9pZCkKCiAgICBkZWYgdGVzdF9pbnZhbGlkX3JlcXVlc3RzX25ldmVyX3JlYWNoX2VuZ2luZShzZWxmKToKICAgICAgICBpbnZhbGlkID0gW3t9LCBbXSwgeydxdWVzdGlvbnMnOiB7J3EnOiAnd3JvbmcnfX0sCiAgICAgICAgICAgICAgICAgICB7J2ltYWdlcyc6IFsnaW1hZ2UnXSwgJ3F1ZXN0aW9ucyc6IHsncSc6IHsndHlwZSc6ICdub3VsJywgJ2luc3RydWN0aW9ucyc6ICdUZXN0J319fSwKICAgICAgICAgICAgICAgICAgIHsncXVlc3Rpb25zJzogeydxJzogeyd0eXBlJzogJ2Nob2ljZScsICdpbnN0cnVjdGlvbnMnOiAnVGVzdCcsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICdjcml0ZXJpYSc6IHtzdHIoaSk6ICd4JyBmb3IgaSBpbiByYW5nZSgyNyl9fX19XQogICAgICAgIGZvciBib2R5IGluIGludmFsaWQ6CiAgICAgICAgICAgIHdpdGggc2VsZi5zdWJUZXN0KGJvZHk9Ym9keSk6CiAgICAgICAgICAgICAgICBzdGF0dXMsIHJlc3VsdCwgXyA9IHJlcXVlc3Qoc2VsZi5iYXNlLCAnUE9TVCcsIGJvZHkpCiAgICAgICAgICAgICAgICBzZWxmLmFzc2VydEVxdWFsKHN0YXR1cywgNDIyKQogICAgICAgICAgICAgICAgc2VsZi5hc3NlcnRJbignZGV0YWlsJywgcmVzdWx0KQogICAgICAgIHNlbGYuYXNzZXJ0RmFsc2Uoc2VsZi5jYWxscykKCiAgICBkZWYgdGVzdF9lbXB0eV9ib2R5X2FuZF91bmtub3duX3JvdXRlKHNlbGYpOgogICAgICAgIHNlbGYuYXNzZXJ0RXF1YWwocmVxdWVzdChzZWxmLmJhc2UsICdQT1NUJylbMF0sIDQwMCkKICAgICAgICBzZWxmLmFzc2VydEVxdWFsKHJlcXVlc3Qoc2VsZi5iYXNlLCAnR0VUJywgcGF0aD0nL21pc3NpbmcnKVswXSwgNDA0KQogICAgICAgIHNlbGYuYXNzZXJ0RmFsc2Uoc2VsZi5jYWxscykKCiAgICBkZWYgdGVzdF9ib3VuZGFyaWVzKHNlbGYpOgogICAgICAgIGZvciBzaXplIGluICgyLCAyNik6CiAgICAgICAgICAgIGJvZHkgPSB7J3F1ZXN0aW9ucyc6IHsncSc6IHsndHlwZSc6ICdjaG9pY2UnLCAnaW5zdHJ1Y3Rpb25zJzogJ1Rlc3QnLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAnY3JpdGVyaWEnOiB7c3RyKGkpOiAneCcgZm9yIGkgaW4gcmFuZ2Uoc2l6ZSl9fX19CiAgICAgICAgICAgIHNlbGYuYXNzZXJ0RXF1YWwobGVuKHZhbGlkYXRlX2JvZHkoYm9keSkpLCAxKQogICAgICAgIGZvciBsZXZlbHMgaW4gKDEsIDExKToKICAgICAgICAgICAgd2l0aCBzZWxmLmFzc2VydFJhaXNlcyhWYWx1ZUVycm9yKToKICAgICAgICAgICAgICAgIHZhbGlkYXRlX2JvZHkoeydxdWVzdGlvbnMnOiB7J3EnOiB7J3R5cGUnOiAnc2NvcmUnLCAnaW5zdHJ1Y3Rpb25zJzogJ1Rlc3QnLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgJ2NyaXRlcmlhJzogWyd4J10gKiBsZXZlbHN9fX0pCgoKaWYgX19uYW1lX18gPT0gJ19fbWFpbl9fJzoKICAgIHVuaXR0ZXN0Lm1haW4oKQo=">下载 test_service.py</a>。真实服务验收设计覆盖 6 个有效请求、7 个决策，另含 8 个无效请求及健康、404 检查；这是待执行的验收范围，不是已取得的实机成绩。</p><div class="note"><strong>当前验证状态：</strong>旧离线核心推理 5/5 已通过；新服务的 4 项 CPU 契约测试在本地和目标容器通过；启动脚本已实测在卡忙时拒绝启动。由于 4、5 号卡随后被其他服务占满，新的真实 NPU HTTP 验收尚未执行，不将 CPU 模拟测试说成实机通过。</div></section>
+<section id="deploy"><h2>部署与复现：固定已实测组合</h2><div class="table"><table><thead><tr><th>项目</th><th>实际配置</th></tr></thead><tbody><tr><td>基础镜像</td><td><code>quay.io/ascend/vllm-ascend@sha256:2c8aac4281e56953764a7fa60773cec734342d32d9d6d76c0c8f3a8660a64b85</code></td></tr><tr><td>vLLM</td><td>v0.30.0 / <code>ced6857afa0ea7b2e3f0846a62e1394e90f15607</code></td></tr><tr><td>vLLM-Ascend</td><td>main 固定快照 / <code>007dd9bd04ef59cae564fcbb82c138920f4de3eb</code></td></tr><tr><td>版本配套</td><td>按 Ascend 的 Dockerfile 与 <code>.github/vllm-main-verified.commit</code> 核对；不是随意拼接两仓最新 main。</td></tr><tr><td>StartLux 权重</td><td><code>startlux-models/StartLux-Decision-35B-A3B</code><br>revision：<code>421fbe7149ca0a54f3d8c82c229cbc0c034d293f</code></td></tr><tr><td>硬件与模式</td><td>2 × Ascend 910B4-1（每卡 64 GB），TP2 张量并行，BF16，eager 逐算子执行；本轮用 4、5 号卡，已释放。</td></tr><tr><td>运行依赖</td><td>Python 3.12、torch 2.10.0、torch_npu 2.10.0.post4、Transformers 5.17.0；复用既有已验证虚拟环境和相同基线构建产物。</td></tr><tr><td>框架分支与推送</td><td>未修改两仓；仅记录上游固定提交，不创建无意义的适配分支。</td></tr></tbody></table></div><h3>已验证的引擎初始化参数</h3><pre><code>llm = LLM(
+    model=&quot;/models/startlux/StartLux-Decision-35B-A3B&quot;,
+    tensor_parallel_size=2,
+    dtype=&quot;bfloat16&quot;,
+    enforce_eager=True,
+    max_model_len=4096,
+    max_num_seqs=8,
+    max_num_batched_tokens=4096,
+    gpu_memory_utilization=0.85,
+    enable_prefix_caching=False,
+    enable_chunked_prefill=False,
+    limit_mm_per_prompt={&quot;image&quot;: 0, &quot;video&quot;: 0},
+    seed=0,
+)</code></pre><h3>本次隔离环境的重跑命令</h3><p>下列是<strong>已准备环境的恢复命令</strong>，不是仅凭基础镜像即可从零执行的安装教程。新服务的完整启动与验收命令见上方“完整代码”一节。容器保留了两仓上游源码、原始权重只读挂载与虚拟环境；启动脚本设置 CANN 环境及 <code>ASCEND_RT_VISIBLE_DEVICES=4,5</code>。重跑前先确认设备仍空闲。</p><pre><code># 宿主机：恢复本次保留的隔离容器，再运行已验证脚本。
+docker start decision-stock-20261010
+docker exec --privileged decision-stock-20261010 \
+  bash scripts/run.sh startlux
+
+# 测试结束后释放本任务设备。
+docker stop decision-stock-20261010</code></pre><p>迁移到新机器时，必须恢复上述固定源码、完整构建产物和 Python 依赖；镜像标签本身不能替代源码核验。本轮保留了初次缺少 <code>_cann_ops_custom</code> 算子包的失败记录，补齐同一基线的二进制后通过，没有为修复它修改框架源码。</p></section>
+<section id="evidence"><h2>本轮实测：真实权重，五条功能请求</h2><p><span class="scope">2026-10-10 · 本地实测</span> 每条请求均拿到 A–Z 共 26 个指定分数，再按该题的合法选项计算概率。以下概率保留四位小数。</p><div class="table"><table><thead><tr><th>功能样例</th><th>实际决策</th><th>该选项概率</th><th>候选分数完整度</th></tr></thead><tbody><tr><td>重复扣款 → 部门选择</td><td>账单与退款</td><td>99.7840%</td><td>26 / 26</td></tr><tr><td>包裹延迟 → 部门选择</td><td>物流</td><td>99.8870%</td><td>26 / 26</td></tr><tr><td>数字 8 → 是否为偶数</td><td>是</td><td>99.1955%</td><td>26 / 26</td></tr><tr><td>数字 7 → 是否为偶数</td><td>否</td><td>99.4640%</td><td>26 / 26</td></tr><tr><td>应用无法启动 → 严重程度</td><td>阻断使用</td><td>95.5868%</td><td>26 / 26</td></tr></tbody></table></div><div class="note"><strong>5/5 是功能测试结果，不是七项平均准确率。</strong>本方案没有完成七项全量评测，也没有完成稳态压测；不能直接把此前定制分类分支的 91.94% 成绩或图模式数据移到这里。</div><div class="table"><table><thead><tr><th>核验对象</th><th>结果</th></tr></thead><tbody><tr><td>vLLM 源码</td><td>7,159 个文件与上游固定提交一致</td></tr><tr><td>Ascend 源码</td><td>4,415 个文件与上游固定提交一致</td></tr><tr><td>配置与权重</td><td>使用原始架构，不使用自定义分类类或 <code>hf_overrides</code></td></tr><tr><td>概率有效性</td><td>五条请求的合法候选概率之和均约为 1；所有预期选项正确</td></tr><tr><td>资源收尾</td><td>早期离线功能测试结束时已停止容器并释放本任务进程；这不是当前资源占用的实时状态</td></tr></tbody></table></div></section>
+<section id="compare"><h2>已提交 PR 方案 vs 本次独立服务：改哪里、怎么跑</h2>
+<p><strong>方案 A 是已经提交的两仓 eager PR；方案 B 是本次新增的独立服务。</strong>方案 A 在 vLLM 内实现原生分类读出，Ascend 仓提供部署配套；方案 B 通过原版生成接口拿候选 logprobs，在服务层计算决策概率。</p>
+<h3>方案 A：我们之前提交的两个 PR</h3>
+<div class="table"><table><thead><tr><th>仓库与 PR</th><th>提交分支</th><th>实际修改</th><th>提交改动量</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/vllm-project/vllm/pull/60375">vLLM #60375</a></td><td><code>startlux_decision_eager_pr</code></td><td>模型注册、最后位置分类读出、HTTP 服务示例及测试</td><td>5 个文件，+335 / −0</td></tr>
+<tr><td><a href="https://github.com/vllm-project/vllm-ascend/pull/17955">vLLM-Ascend #17955</a></td><td><code>startlux_decision_eager_pr</code></td><td>部署文档、启动脚本及启动测试；没有改 runner、注意力或算子</td><td>3 个文件，+202 / −0</td></tr>
+</tbody></table></div>
+<p class="mini">以上为本地保存的 PR 提交快照，不表示实时合入或 CI 状态。两仓合计 8 个文件、+537 行，包含测试和文档；不能把它与方案 B 的 183 行运行代码直接作为同口径工作量对比。</p>
+<figure><svg viewBox="0 0 900 290" role="img" aria-labelledby="prFlowTitle prFlowDesc"><title id="prFlowTitle">已提交 PR 的原生分类实现与 Ascend 配套关系</title><desc id="prFlowDesc">官方提示词由示例服务送到新增注册的 StartLux 分类模型，复用 Qwen 骨干，再由新增分类池化器取最后位置并计算 FP32 候选分数，调用侧校准返回。Ascend PR 只提供部署配套，底层计算沿用现有实现。</desc>
+<defs><marker id="prFlowArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="#60788a"/></marker></defs>
+<text x="12" y="24" font-size="17" font-weight="600" fill="#152739">vLLM PR #60375：新增分类接入，复用 Qwen 模型骨干</text>
+<rect x="10" y="43" width="200" height="86" rx="10" fill="#e7f5ef" stroke="#56a990"/>
+<text x="110" y="71" text-anchor="middle" font-size="16" fill="#152739">新增服务示例</text><text x="110" y="98" text-anchor="middle" font-size="14" fill="#40596c">官方提示词 → llm.encode</text>
+<path d="M211 85H237" stroke="#60788a" marker-end="url(#prFlowArrow)"/>
+<rect x="242" y="43" width="200" height="86" rx="10" fill="#fff2df" stroke="#d7a25a"/>
+<text x="342" y="71" text-anchor="middle" font-size="16" fill="#152739">新增分类模型注册</text><text x="342" y="98" text-anchor="middle" font-size="14" fill="#40596c">内部复用 Qwen 前向计算</text>
+<path d="M443 85H469" stroke="#60788a" marker-end="url(#prFlowArrow)"/>
+<rect x="474" y="43" width="200" height="86" rx="10" fill="#fff2df" stroke="#d7a25a"/>
+<text x="574" y="71" text-anchor="middle" font-size="16" fill="#152739">新增分类读出</text><text x="574" y="98" text-anchor="middle" font-size="14" fill="#40596c">最后位置 → FP32 字母头</text>
+<path d="M675 85H701" stroke="#60788a" marker-end="url(#prFlowArrow)"/>
+<rect x="706" y="43" width="184" height="86" rx="10" fill="#e7f5ef" stroke="#56a990"/>
+<text x="798" y="71" text-anchor="middle" font-size="16" fill="#152739">调用侧返回结果</text><text x="798" y="98" text-anchor="middle" font-size="14" fill="#40596c">温度校准 → 选项概率</text>
+<rect x="10" y="160" width="880" height="111" rx="10" fill="#eaf1fb" stroke="#8aafd9"/>
+<text x="30" y="191" font-size="17" font-weight="600" fill="#152739">vLLM-Ascend PR #17955：部署配套</text>
+<text x="30" y="221" font-size="15" fill="#40596c">README + serve.sh + 启动测试 → 在昇腾上启动上述分类服务</text>
+<text x="30" y="248" font-size="15" fill="#40596c">沿用现有 Ascend runner 和算子；此 PR 不包含后续图模式分支的额外改动。</text>
+</svg><figcaption>图：橙色是新增的框架分类逻辑，绿色是服务编排；蓝色说明 Ascend 仓的部署配套职责。</figcaption></figure>
+<h3>PR 代码量拆开看：核心、服务、文档、测试</h3>
+<div class="table"><table><thead><tr><th>类别</th><th>位置／职责</th><th>新增行数</th></tr></thead><tbody>
+<tr><td>vLLM 核心实现</td><td><code>models/startlux_decision.py</code>：分类模型与 FP32 字母投影</td><td>115</td></tr>
+<tr><td>vLLM 模型入口</td><td><code>models/registry.py</code>：注册 dense、MoE 两个分类类</td><td>8</td></tr>
+<tr><td>vLLM 服务示例</td><td><code>examples/pooling/classify/serve_startlux_decision.py</code>：接口、提示词及官方答案处理</td><td>129</td></tr>
+<tr><td>vLLM 测试</td><td>两个测试文件，覆盖模型及注册</td><td>83</td></tr>
+<tr><td>Ascend 启动脚本</td><td><code>examples/models/startlux_decision/serve.sh</code></td><td>17</td></tr>
+<tr><td>Ascend 部署文档</td><td><code>examples/models/startlux_decision/README.md</code></td><td>125</td></tr>
+<tr><td>Ascend 测试</td><td>启动契约测试</td><td>60</td></tr>
+</tbody></table></div>
+<p><strong>按运行代码口径：</strong>方案 A 为 vLLM 核心与注册 123 行 + 服务示例 129 行 + Ascend 启动脚本 17 行，共 269 行；方案 B 为独立服务 166 行 + 启动脚本 17 行，共 183 行。两者支持范围和依赖的官方辅助逻辑不同，行数不是性能或质量指标。</p>
+<details><summary>核对这次统计对应的固定提交</summary><div class="table"><table><thead><tr><th>仓库</th><th>比较基线</th><th>PR 本地快照</th></tr></thead><tbody>
+<tr><td>vLLM</td><td><code>df417f780a19b68cebc4379942de6ea0e6f6aceb</code></td><td><code>a9fccecf5c050c1e4533429316c586e2dd0fd19b</code></td></tr>
+<tr><td>vLLM-Ascend</td><td><code>3f66e0929913922f13a77729361b029da3140402</code></td><td><code>82f1e185845f78693390f28c40a5b5a123aa733b</code></td></tr>
+</tbody></table></div><p>PR 面向上游提交的基线与实际验收的固定运行基线应分别记录，不将上游重放后的提交自动视为同环境重新测过。</p></details>
+<h3>方案 B 对比：独立服务复用原版 logprobs 接口</h3>
+<p><strong>两种方案都要写服务逻辑，也都使用训练好的 StartLux 权重。</strong>关键区别在于模型最后一步的分数如何取出，不是一个需要模型、另一个只靠提示词。</p>
+<figure><div class="grid"><div class="card"><h3>本次 · 框架源码零修改</h3><p>官方提示词 → 原版生成模型 → 标准词表投影 → 指定候选 logprobs → 服务层校准 → 业务答案。</p><p class="mini">新的应用代码：serve.py + run_service.sh。请求会采样一个 token，读取的是该位置的候选分数，不依赖采样文本。</p></div><div class="card"><h3>之前 · 原生分类适配</h3><p>官方提示词 → 注册的 StartLux 分类模型 → 最后有效隐藏状态 → FP32 字母候选投影 → 服务层校准 → 业务答案。</p><p class="mini">在 vLLM 内新增分类模型及 pooling 输出，调用侧仍要处理候选范围、温度和业务协议。</p></div></div><figcaption>图：两条链路复用同一模型骨干，分数读出路径及框架集成位置不同。</figcaption></figure>
+<div class="table"><table><thead><tr><th>对比项</th><th>方案 B：本次独立服务</th><th>方案 A：已提交 PR 的原生分类方案</th></tr></thead><tbody>
+<tr><td>vLLM 修改</td><td>0 行，使用已有 Qwen3_5MoeForConditionalGeneration</td><td>新增 StartLuxDecisionMoeForSequenceClassification、模型注册及分类 pooling</td></tr>
+<tr><td>Ascend 修改</td><td>0 行，复用固定上游版本</td><td>StartLux eager 的交付主要为部署文档、启动脚本和启动测试，没有新增模型 runner 或算子；不将新 Perplexity 的注意力修复混进来</td></tr>
+<tr><td>分数来源</td><td>原版 SamplingParams.logprob_token_ids 请求分数，读取 RequestOutput 中的 logprobs</td><td>池化提取最后有效位置，直接计算 A–Z 原始 logits</td></tr>
+<tr><td>模型末端计算</td><td>仍走标准词表输出及采样路径；只请求少量分数不代表只计算这些词表项</td><td>分类输出路径直接做候选字母投影；不能据此推断整体模型显存已减少</td></tr>
+<tr><td>数值精度</td><td>使用原版词表计算路径；候选后处理转 FP32</td><td>隐藏状态与候选权重显式转 FP32 后做线性投影</td></tr>
+<tr><td>校准与返回</td><td>仍在独立服务处理，复用官方 _answer</td><td>也需要调用侧做候选限制、温度校准及协议封装</td></tr>
+<tr><td>生成 token</td><td>当前配置每题采样 1 个 token，但不向用户返回生成文本</td><td>分类 pooling 不需要普通文本采样</td></tr>
+<tr><td>维护成本</td><td>维护独立服务；固定、核对上游版本和官方辅助函数接口</td><td>维护框架扩展与服务，并持续处理上游合并及兼容性</td></tr>
+<tr><td>图模式</td><td>本次只验证 eager 核心；未验证此服务的图模式</td><td>这两个 PR 交付 eager；后续 startlux_decision_npu_graph 分支另做图模式验证，不能混作 PR 内容</td></tr>
+<tr><td>本轮精度与性能</td><td>离线功能 5/5；HTTP 实机、七项全量、稳态性能待补</td><td>历史 35B 七项均值 91.94%；不是与本次新服务配对测试的结果</td></tr>
+</tbody></table></div>
+<h3>关键代码并排看</h3><div class="grid"><div><h3>现在：调用已有接口拿分数</h3><pre><code>params = SamplingParams(
+    max_tokens=1,
+    temperature=0,
+    logprob_token_ids=letter_ids,
+)
+output = llm.generate(prompts, params)
+# 后续代码位于独立服务。
+logprobs = output[0].outputs[0].logprobs[0]</code></pre></div><div><h3>之前：在模型内部增加读出</h3><pre><code># 原生分类模型里的 pooler 核心。
+selected = self.method(
+    hidden_states, pooling_metadata
+)
+return F.linear(
+    selected.float(), self.letter_weight
+)
+# letter_weight 来自 lm_head 的字母行，
+# 保存为 FP32；后续仍需调用侧校准。</code></pre></div></div>
+<div class="callout"><strong>结论：</strong>StartLux 能推理不以修改 vLLM 为前提；之前的原生分类适配提供另一种输出集成与数值控制方式。两条路径的端到端速度、概率误差和七项精度需要配对实测，不能仅凭代码多少或头部大小判定优劣。</div>
+<h3>Perplexity 为什么不直接套这套服务</h3><p>StartLux 保留标准词表头；Perplexity 原始配置为 Qwen3_5Model，另有形状为 [255, 5120] 的决策读出层，且全注意力要求双向语义。原版加载实测报 language_model 参数映射错误。它需要处理权重映射、决策头与注意力语义；外部插件等不直接改仓库源码的方案可另行验证，但不是此 serve.py 已覆盖的能力。</p></section>
+<section id="next"><h2>落地建议与验收顺序</h2><div class="table"><table><thead><tr><th>阶段</th><th>需要完成什么</th><th>完成判据</th></tr></thead><tbody><tr><td>① 框架零修改功能</td><td>真实权重加载与三类文字决策</td><td class="good">本轮 5/5 已完成</td></tr><tr><td>② 应用服务</td><td>实现官方接口、候选顺序、温度、评分与 confidence 字段；限定明确支持范围</td><td>代码已完成，4 项 CPU 测试通过；真实 NPU HTTP 待验收</td></tr><tr><td>③ 全量精度</td><td>同权重、同提示词、同候选顺序完成七项测试，保存逐题概率</td><td>报告七项均值、逐题选择一致率与概率误差；按预先约定标准验收</td></tr><tr><td>④ 配对性能</td><td>同硬件、并行规模、输入与并发，预热后对照分类方案</td><td>独立报告延迟和吞吐，不使用冷启动耗时推断稳态性能</td></tr><tr><td>⑤ 扩展范围</td><td>图模式、图片输入、长上下文及大选项集合分别验证</td><td>各自精度、覆盖与稳定性通过后再扩大服务范围</td></tr></tbody></table></div><p><strong>建议：</strong>以本次零修改方案作为 StartLux 文字决策的下一轮验收基线，先把接口与精度闭环，再根据配对性能结果决定是否保留原生分类扩展。</p><details><summary>证据保留范围与官方源码入口</summary><p>原始实验记录、逐请求结果与失败日志保留在本地实验目录。本页公开展示方案、复现代码和已列出的功能样例，不公开原始实验附件。</p><p><a href="https://huggingface.co/startlux-models/StartLux-Decision-35B-A3B/tree/421fbe7149ca0a54f3d8c82c229cbc0c034d293f">StartLux 固定权重版本</a> · <a href="https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/vllm/sampling_params.py">原版 SamplingParams</a> · <a href="https://github.com/vllm-project/vllm/blob/ced6857afa0ea7b2e3f0846a62e1394e90f15607/vllm/model_executor/models/registry.py">上游模型注册表</a></p></details></section>
+<footer>本页可离线阅读与交互；外部来源链接需要网络。本地附件链接在原工作目录中有效，单独分享本 HTML 不影响正文和概率演示。</footer>
+</main><script>
+const cases=[{"name": "重复扣款 → 部门选择", "labels": ["账单与退款", "物流", "技术支持"], "scores": [-0.010835383087396622, -9.260835647583008, -7.57333517074585], "temperature": 1.1905, "probabilities": [0.9978398084640503, 0.0004213665088173002, 0.0017388432752341032]}, {"name": "包裹延迟 → 部门选择", "labels": ["账单与退款", "物流", "技术支持"], "scores": [-9.007270812988281, -0.007270426023751497, -8.819770812988281], "temperature": 1.1905, "probabilities": [0.0005203653126955032, 0.9988704323768616, 0.0006091277464292943]}, {"name": "数字 8 → 是否为偶数", "labels": ["是", "否"], "scores": [-0.015259076841175556, -6.640259265899658], "temperature": 1.376, "probabilities": [0.9919554591178894, 0.008044576272368431]}, {"name": "数字 7 → 是否为偶数", "labels": ["是", "否"], "scores": [-7.204311370849609, -0.016811596229672432], "temperature": 1.376, "probabilities": [0.005359697621315718, 0.9946402907371521]}, {"name": "应用无法启动 → 严重程度", "labels": ["外观问题", "使用不便", "阻断使用"], "scores": [-5.77569580078125, -4.08819580078125, -0.08819557726383209], "temperature": 1.213, "probabilities": [0.008791911415755749, 0.0353398360311985, 0.9558682441711426]}];
+const caseSelect=document.getElementById('case'),temp=document.getElementById('temp'),tempValue=document.getElementById('tempValue'),bars=document.getElementById('bars'),status=document.getElementById('labStatus');
+function recalc(){const c=cases[Number(caseSelect.value)],T=Number(temp.value),scores=c.scores.map(v=>v/T),m=Math.max(...scores),exps=scores.map(v=>Math.exp(v-m)),sum=exps.reduce((a,b)=>a+b,0),ps=exps.map(v=>v/sum);tempValue.textContent=T.toFixed(4);bars.innerHTML=ps.map((p,i)=>`<div class="barrow"><span>${String.fromCharCode(65+i)} · ${c.labels[i]}</span><div class="track"><div class="fill" style="width:${p*100}%"></div></div><span class="value">${(p*100).toFixed(4)}%</span></div>`).join('');const win=ps.indexOf(Math.max(...ps));status.textContent=`${Math.abs(T-c.temperature)<0.00001?'使用本权重官方温度':'自选温度演示，不是新的实测结果'} · 最高概率选项：${c.labels[win]} · 概率总和：${(ps.reduce((a,b)=>a+b,0)*100).toFixed(2)}%`}
+function reset(){temp.value=cases[Number(caseSelect.value)].temperature;recalc()}
+caseSelect.addEventListener('change',reset);temp.addEventListener('input',recalc);document.getElementById('reset').addEventListener('click',reset);reset();
+</script></body></html>
