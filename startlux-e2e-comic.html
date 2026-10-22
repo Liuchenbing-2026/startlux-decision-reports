@@ -551,8 +551,23 @@ function refresh(){
  document.querySelectorAll('svg title').forEach(x=>x.textContent=language==='zh'?'技术漫画角色':'Technical comic character');document.querySelectorAll('svg desc').forEach(x=>x.textContent=language==='zh'?'机器人示意，解释见相邻对话。':'Schematic robot; see the adjacent explanation.');
 }
 function setLanguage(l){language=l;document.documentElement.lang=l==='zh'?'zh-CN':'en';document.querySelectorAll('[data-zh]').forEach(x=>x.textContent=x.dataset[l]);for(const id of ['zh','en'])document.getElementById(id).setAttribute('aria-pressed',id===l);save('startlux-comic-language',l);refresh()}
-function setTab(key,update=true){if(!['v1','v11','compare'].includes(key))key='v1';active=key;tabs.forEach(b=>{const selected=b.dataset.tab===key;b.setAttribute('aria-selected',selected);b.tabIndex=selected?0:-1;document.getElementById(b.getAttribute('aria-controls')).hidden=!selected});save('startlux-comic-tab',key);if(update){const u=new URL(location.href);u.searchParams.set('tab',key);u.hash='';history.replaceState(null,'',u);window.scrollTo({top:0,behavior:'instant'})}refresh()}
-tabs.forEach((b,i)=>{b.onclick=()=>setTab(b.dataset.tab);b.onkeydown=e=>{let next;if(e.key==='ArrowRight')next=(i+1)%tabs.length;else if(e.key==='ArrowLeft')next=(i+tabs.length-1)%tabs.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=tabs.length-1;else return;e.preventDefault();setTab(tabs[next].dataset.tab);tabs[next].focus()}});
+function setTab(key,update=true){
+ if(!['v1','v11','compare'].includes(key))key='v1';
+ const readingY=window.scrollY,previous=active;
+ let anchor=null;
+ if(update&&previous!==key){
+  const candidates=[...document.querySelectorAll(`[id^="${previous}-"]`)].filter(e=>e.matches('section,article')&&e.getBoundingClientRect().top<=160&&e.getBoundingClientRect().bottom>0);
+  for(const e of candidates){const target=document.getElementById(key+e.id.slice(previous.length));if(target)anchor={target,offset:e.getBoundingClientRect().top};}
+ }
+ active=key;tabs.forEach(b=>{const selected=b.dataset.tab===key;b.setAttribute('aria-selected',selected);b.tabIndex=selected?0:-1;document.getElementById(b.getAttribute('aria-controls')).hidden=!selected});
+ if(anchor)for(let e=anchor.target.parentElement;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;
+ save('startlux-comic-tab',key);refresh();
+ if(update){const u=new URL(location.href);u.searchParams.set('tab',key);u.hash='';history.replaceState(null,'',u);
+ const targetY=anchor?window.scrollY+anchor.target.getBoundingClientRect().top-anchor.offset:readingY;
+ window.scrollTo({top:targetY,behavior:'instant'});
+ requestAnimationFrame(()=>{if(active===key)window.scrollTo({top:anchor?window.scrollY+anchor.target.getBoundingClientRect().top-anchor.offset:readingY,behavior:'instant'});});}
+}
+tabs.forEach((b,i)=>{b.onclick=()=>setTab(b.dataset.tab);b.onkeydown=e=>{let next;if(e.key==='ArrowRight')next=(i+1)%tabs.length;else if(e.key==='ArrowLeft')next=(i+tabs.length-1)%tabs.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=tabs.length-1;else return;e.preventDefault();setTab(tabs[next].dataset.tab);tabs[next].focus({preventScroll:true})}});
 for(const id of ['zh','en'])document.getElementById(id).onclick=()=>setLanguage(id);
 for(const mode of ['causal','bidir'])document.getElementById('compare-'+mode).onclick=()=>{document.getElementById('compare-matrix').dataset.mode=mode;for(const x of ['causal','bidir'])document.getElementById('compare-'+x).setAttribute('aria-pressed',mode===x);refresh()};
 document.querySelectorAll('[data-tokens]').forEach(b=>b.onclick=()=>{const panel=b.closest('[role=tabpanel]');panel.querySelector('[id$="graph-state"]').dataset.tokens=b.dataset.tokens;panel.querySelectorAll('[data-tokens]').forEach(x=>x.setAttribute('aria-pressed',x===b));refresh()});
